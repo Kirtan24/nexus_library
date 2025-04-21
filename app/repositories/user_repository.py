@@ -40,7 +40,7 @@ class UserRepository:
 
     def verify_login(self, username, password):
         query = """
-            SELECT u.user_id, u.username, u.password_hash, u.account_status, r.role_name
+            SELECT u.user_id, u.username, u.password_hash, u.account_status, r.role_name, r.role_id
             FROM users u
             JOIN user_roles ur ON u.user_id = ur.user_id
             JOIN roles r ON ur.role_id = r.role_id
@@ -56,13 +56,35 @@ class UserRepository:
                 return False, f"Account is {user['account_status']}", None
 
             if bcrypt.checkpw(password.encode('utf-8'), user['password_hash'].encode('utf-8')):
-                self.db_controller.execute_query("UPDATE users SET last_login = %s WHERE user_id = %s", (datetime.now(), user['user_id']))
-                return True, "Login successful", {'user_id': user['user_id'], 'username': user['username'], 'role': user['role_name']}
+                self.db_controller.execute_query(
+                    "UPDATE users SET last_login = %s WHERE user_id = %s",
+                    (datetime.now(), user['user_id'])
+                )
+
+                # Fetch permissions for this role
+                permissions_query = """
+                    SELECT p.permission_name
+                    FROM role_permissions rp
+                    JOIN permissions p ON rp.permission_id = p.permission_id
+                    WHERE rp.role_id = %s;
+                """
+                permissions_result = self.db_controller.execute_query(
+                    permissions_query, (user['role_id'],), True
+                )
+                permissions = [perm['permission_name'] for perm in permissions_result]
+
+                return True, "Login successful", {
+                    'user_id': user['user_id'],
+                    'username': user['username'],
+                    'role': user['role_name'],
+                    'permissions': permissions
+                }
             return False, "Invalid username or password", None
 
         except Exception as e:
             logging.error(f"Login failed: {e}")
             return False, "Login failed due to an error", None
+
 
     def get_user_by_id(self, user_id):
         query = """

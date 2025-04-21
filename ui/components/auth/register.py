@@ -15,7 +15,7 @@ PLACEHOLDER_COLOR = "#888888"
 BORDER_COLOR = "#a875ff"
 
 # User Roles
-USER_ROLES = ["Select Role", "Student", "Researcher", "Faculty", "Guest"]
+USER_ROLES = ["Select Role", "Guest", "Student", "Researcher", "Faculty", "Librarian"]
 
 class RegisterPage(ctk.CTkFrame):
     def __init__(self, master):
@@ -80,7 +80,7 @@ class RegisterPage(ctk.CTkFrame):
         button_frame = ctk.CTkFrame(container, fg_color=BACKGROUND_COLOR)
         button_frame.pack(pady=10)
 
-        login_button = ctk.CTkButton(button_frame, text="Register", font=("Arial", 16, "bold"), fg_color=TEXT_COLOR, text_color=BACKGROUND_COLOR, command=self.register)
+        login_button = ctk.CTkButton(button_frame, text="Register", font=("Arial", 16, "bold"), fg_color=TEXT_COLOR, text_color=BACKGROUND_COLOR, command=self.register_user)
         login_button.pack(side=ctk.LEFT, padx=10)
 
         back_button = ctk.CTkButton(button_frame, text="Back", font=("Arial", 16, "bold"), fg_color=TEXT_COLOR, text_color=BACKGROUND_COLOR,width=80, command=self.master.show_home_page)

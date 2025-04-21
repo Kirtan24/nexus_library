@@ -1,6 +1,4 @@
-from app.models import BorrowRecord
 from controllers.db_controller import DatabaseController
-from datetime import datetime
 import logging
 
 class BorrowRepository:

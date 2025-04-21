@@ -45,10 +45,7 @@ class AuthenticationService:
         return success, message, user_data
 
     def logout(self):
-        """Log out the current user"""
         self.current_user = None
-        logging.info("User logged out")
-        return True, "Logged out successfully"
 
     def get_current_user(self):
         """Get the currently logged in user"""
@@ -66,33 +63,10 @@ class AuthenticationService:
 
     def check_permission(self, permission_name):
         """
-        Check if the current user has a specific permission
-        This would require querying the database for the user's permissions
+        Check if the current user has a specific permission.
         """
         if not self.current_user:
             return False
 
-        # In a real implementation, this would query the database
-        # For now, we'll implement a simple role-based check
-        user_role = self.current_user.get('role')
-
-        # Define role-permission mappings (simplified version)
-        permission_map = {
-            'student': ['borrow_physical_books', 'access_ebooks', 'access_audiobooks', 'reserve_books'],
-            'researcher': ['borrow_physical_books', 'access_ebooks', 'access_research_papers',
-                          'access_audiobooks', 'reserve_books', 'extend_borrowing'],
-            'faculty': ['borrow_physical_books', 'access_ebooks', 'access_research_papers',
-                       'access_audiobooks', 'reserve_books', 'extend_borrowing'],
-            'guest': ['access_ebooks'],
-            'librarian': ['borrow_physical_books', 'access_ebooks', 'access_research_papers',
-                         'access_audiobooks', 'reserve_books', 'extend_borrowing',
-                         'manage_users', 'manage_catalog'],
-            'admin': ['borrow_physical_books', 'access_ebooks', 'access_research_papers',
-                      'access_audiobooks', 'reserve_books', 'extend_borrowing',
-                      'admin_access', 'manage_users', 'manage_catalog']
-        }
-
-        if user_role in permission_map:
-            return permission_name in permission_map[user_role]
-
-        return False
+        user_permissions = self.current_user.get('permissions', [])
+        return permission_name in user_permissions

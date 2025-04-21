@@ -1,5 +1,3 @@
-import os
-
 # Application Config
 APP_NAME = "Nexus Library Management System"
 
