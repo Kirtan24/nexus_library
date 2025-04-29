@@ -1,4 +1,3 @@
-from app.models import Reservation
 from controllers.db_controller import DatabaseController
 import logging
 from datetime import datetime

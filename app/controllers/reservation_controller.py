@@ -1,4 +1,4 @@
-from ..models import Reservation
+from app.models import Reservation
 from ..repositories.reservation_repository import ReservationRepository
 import logging
 

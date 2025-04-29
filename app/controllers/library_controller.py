@@ -1,4 +1,3 @@
-# controllers/library_controller.py
 import logging
 from app.services.book_services import BookService, LibraryItemBuilder
 

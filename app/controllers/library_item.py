@@ -1,5 +1,3 @@
-# models/library_item.py
-
 class LibraryItemFactory:
     """
     Factory pattern implementation for creating different types of library items.
