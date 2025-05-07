@@ -1,5 +1,5 @@
 import logging
-from controllers.db_controller import DatabaseController
+from app.controllers.db_controller import DatabaseController
 
 class AuthorRepository:
     def __init__(self):
@@ -17,10 +17,21 @@ class AuthorRepository:
                 VALUES (%s, %s, %s, %s)
                 RETURNING author_id;
             """
-            result = self.db.execute_query(query, (name, bio, nationality, genres), fetch_one=True)
+            result = self.db.execute_query(query, (name, bio, nationality, genres), True)
+
+            # Fix: Handle different return types properly
             if not result:
                 return False, "Failed to add author"
-            author_id = result['author_id']
+
+            # Check if result is a list (multiple rows)
+            if isinstance(result, list) and len(result) > 0:
+                author_id = result[0]['author_id']
+            # Check if result is a dictionary (single row)
+            elif isinstance(result, dict) and 'author_id' in result:
+                author_id = result['author_id']
+            else:
+                return False, "Failed to get author ID from database"
+
             logging.info("Author '%s' added with ID %s", name, author_id)
             return True, author_id
         except Exception as e:
@@ -34,7 +45,11 @@ class AuthorRepository:
         """
         try:
             query = "SELECT * FROM authors WHERE author_id = %s;"
-            result = self.db.execute_query(query, (author_id,), fetch_one=True)
+            result = self.db.execute_query(query, (author_id,), True)
+
+            # Handle case where result might be a list with one item
+            if isinstance(result, list) and len(result) > 0:
+                return result[0]
             return result
         except Exception as e:
             logging.error("Get author error: %s", e)
@@ -72,11 +87,22 @@ class AuthorRepository:
                 WHERE author_id = %%s
                 RETURNING author_id;
             """ % ", ".join(fields)
-            result = self.db.execute_query(query, tuple(values), fetch_one=True)
+            result = self.db.execute_query(query, tuple(values), True)
+
+            # Handle different return formats
             if not result:
                 return False, "Author not found"
-            logging.info("Author %s updated", author_id)
-            return True, "Author updated successfully"
+
+            # Check if the update was successful by examining the result
+            if isinstance(result, list) and len(result) > 0:
+                logging.info("Author %s updated", author_id)
+                return True, "Author updated successfully"
+            elif isinstance(result, dict) and 'author_id' in result:
+                logging.info("Author %s updated", author_id)
+                return True, "Author updated successfully"
+            else:
+                return False, "Failed to update author"
+
         except Exception as e:
             logging.error("Update author error: %s", e)
             return False, str(e)
@@ -87,17 +113,33 @@ class AuthorRepository:
         Returns: (success: bool, message: str)
         """
         try:
-            check_query = "SELECT COUNT(*) AS count FROM library_items WHERE author_id = %s;"
-            check_result = self.db.execute_query(check_query, (author_id,), fetch_one=True)
-            if check_result['count'] > 0:
+            check_query = "SELECT COUNT(*) AS count FROM items WHERE author_id = %s;"
+            check_result = self.db.execute_query(check_query, (author_id,), True)
+
+            # Handle different return formats for check_result
+            item_count = 0
+            if isinstance(check_result, list) and len(check_result) > 0:
+                item_count = check_result[0]['count']
+            elif isinstance(check_result, dict) and 'count' in check_result:
+                item_count = check_result['count']
+
+            if item_count > 0:
                 return False, "Cannot delete author with associated library items"
 
             delete_query = "DELETE FROM authors WHERE author_id = %s RETURNING author_id;"
-            result = self.db.execute_query(delete_query, (author_id,), fetch_one=True)
+            result = self.db.execute_query(delete_query, (author_id,), True)
+
+            # Handle different return formats
             if not result:
                 return False, "Author not found"
-            logging.info("Author %s deleted", author_id)
-            return True, "Author deleted successfully"
+
+            # Check if the deletion was successful
+            if (isinstance(result, list) and len(result) > 0) or (isinstance(result, dict) and 'author_id' in result):
+                logging.info("Author %s deleted", author_id)
+                return True, "Author deleted successfully"
+            else:
+                return False, "Failed to delete author"
+
         except Exception as e:
             logging.error("Delete author error: %s", e)
             return False, str(e)
@@ -119,7 +161,15 @@ class AuthorRepository:
                 params.append("%" + nationality + "%")
 
             query += " ORDER BY name ASC"
-            return self.db.execute_query(query, tuple(params), fetch_all=True)
+            result = self.db.execute_query(query, tuple(params), True)
+
+            # Ensure we always return a list
+            if result is None:
+                return []
+            if not isinstance(result, list):
+                return [result] if result else []
+            return result
+
         except Exception as e:
             logging.error("Search authors error: %s", e)
             return []
@@ -131,7 +181,19 @@ class AuthorRepository:
         """
         try:
             query = "SELECT * FROM authors ORDER BY name ASC;"
-            return self.db.execute_query(query, fetch_all=True)
+            result = self.db.execute_query(query, params=(), fetch_results=True)
+
+            # For debugging purposes
+            logging.debug(f"get_all_authors result type: {type(result)}")
+            logging.debug(f"get_all_authors result: {result}")
+
+            # Ensure we always return a list
+            if result is None:
+                return []
+            if not isinstance(result, list):
+                return [result] if result else []
+            return result
+
         except Exception as e:
             logging.error("Get all authors error: %s", e)
             return []

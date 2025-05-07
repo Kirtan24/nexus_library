@@ -4,6 +4,9 @@ from ui.components.auth.register import RegisterPage
 from ui.components.pages.home_page import HomePage
 from ui.components.pages.search_page import SearchPage
 from ui.components.pages.main_layout import MainLayout
+from ui.components.pages.manage_items_page import ItemManagementPage
+from ui.components.pages.manage_author_page import AuthorManagementPage
+from ui.components.pages.extra_page import DataTable
 from app.services.auth_services import AuthenticationService
 
 class App(tk.Frame):
@@ -27,7 +30,7 @@ class App(tk.Frame):
     def logout(self):
         self.auth_service.logout()
         self.clear_frame()
-        main_layout = MainLayout(self)
+        MainLayout(self)
         self.show_home_page(None)
 
     def update_main_layout(self):
@@ -35,6 +38,10 @@ class App(tk.Frame):
             if isinstance(widget, MainLayout):
                 widget.set_user(None)
                 widget.update_navigation()
+
+    def show_extra_page(self):
+        self.clear_frame()
+        DataTable(self)
 
 
     def show_home_page(self, user_data=None):
@@ -44,6 +51,14 @@ class App(tk.Frame):
     def show_search_page(self):
         self.clear_frame()
         SearchPage(self)
+
+    def show_manage_items_page(self):
+        self.clear_frame()
+        ItemManagementPage(self)
+
+    def show_manage_author_page(self):
+        self.clear_frame()
+        AuthorManagementPage(self)
 
     def clear_frame(self):
         for widget in self.winfo_children():

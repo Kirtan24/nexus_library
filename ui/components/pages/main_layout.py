@@ -34,7 +34,6 @@ class MainLayout(ctk.CTkFrame):
         self.create_header()
         self.content_container = ctk.CTkFrame(self, fg_color=BACKGROUND_COLOR)
         self.content_container.pack(fill=ctk.BOTH, expand=True)
-        self.create_footer()
 
     def create_header(self):
         header_frame = ctk.CTkFrame(self, fg_color=OFFWHITE_COLOR, height=70)
@@ -86,7 +85,8 @@ class MainLayout(ctk.CTkFrame):
                 ],
                 "Admin Tools": [
                     {"text": "Users", "command": self.show_users, "permission": "manage_users"},
-                    {"text": "Catalog", "command": self.show_catalog_management, "permission": "manage_catalog"},
+                    {"text": "Items", "command": self.show_manage_items, "permission": "manage_catalog"},
+                    {"text": "Authors", "command": self.show_manage_author, "permission": "manage_catalog"},
                     {"text": "Reports", "command": self.show_reports, "permission": "view_reports"},
                     {"text": "Settings", "command": self.show_settings, "permission": "system_config"},
                     {"text": "Admin", "command": self.show_admin, "permission": "admin_access"},
@@ -197,29 +197,6 @@ class MainLayout(ctk.CTkFrame):
     def update_navigation(self):
         self.create_navigation()
 
-    def create_footer(self):
-        footer_frame = ctk.CTkFrame(self, fg_color=OFFWHITE_COLOR, height=50)
-        footer_frame.pack(fill=ctk.X, side=ctk.BOTTOM)
-        footer_frame.pack_propagate(False)
-
-        ctk.CTkLabel(
-            footer_frame,
-            text="© 2025 Nexus Library. All rights reserved.",
-            font=("Arial", 12),
-            text_color="#666666"
-        ).pack(side=ctk.LEFT, padx=20)
-
-        links = ctk.CTkFrame(footer_frame, fg_color=OFFWHITE_COLOR)
-        links.pack(side=ctk.RIGHT, padx=20)
-
-        for link in ["Privacy Policy", "Terms of Service", "Help"]:
-            lbl = ctk.CTkLabel(links, text=link, font=("Arial", 12), text_color="#666666", cursor="hand2")
-            lbl.pack(side=ctk.LEFT, padx=10)
-            lbl.bind("<Button-1>", lambda e, l=link: self.show_footer_page(l))
-
-    def show_footer_page(self, page):
-        self.master.show_page(page.lower().replace(" ", "_"))
-
     def clear_content(self):
         for widget in self.content_container.winfo_children():
             widget.destroy()
@@ -239,8 +216,9 @@ class MainLayout(ctk.CTkFrame):
     def show_audiobooks(self): self.master.show_audiobooks_page()
     def show_research(self): self.master.show_research_page()
     def show_users(self): self.master.show_users_page()
-    def show_catalog_management(self): self.master.show_catalog_management_page()
-    def show_reports(self): self.master.show_reports_page()
+    def show_manage_items(self): self.master.show_manage_items_page()
+    def show_manage_author(self): self.master.show_manage_author_page()
+    def show_reports(self): self.master.show_extra_page()
     def show_settings(self): self.master.show_settings_page()
     def show_admin(self): self.master.show_admin_page()
     def show_profile(self): self.master.show_profile_page()

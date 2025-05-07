@@ -1,5 +1,4 @@
-# controllers/author_controller.py
-from repositories.author_repository import AuthorRepository
+from app.repositories.author_repository import AuthorRepository
 import logging
 
 class AuthorController:

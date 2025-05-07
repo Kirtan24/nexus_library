@@ -1,5 +1,4 @@
 import customtkinter as ctk
-from PIL import Image, ImageTk
 from ui.components.pages.main_layout import MainLayout
 
 BACKGROUND_COLOR = "#f8f9fa"

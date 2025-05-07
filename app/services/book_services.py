@@ -1,13 +1,6 @@
-# services/book_service.py
-import logging
-from repositories.book_repository import BookRepository
+from app.repositories.book_repository import BookRepository
 from app.controllers.library_item import LibraryItemFactory
-
 class BookService:
-    """
-    Service class to manage library items.
-    Implements Singleton pattern and Facade pattern.
-    """
     _instance = None
 
     def __new__(cls):
@@ -22,25 +15,18 @@ class BookService:
 
         self.repository = BookRepository()
         self.initialized = True
-        logging.info("BookService initialized (Singleton)")
 
     def add_item(self, **kwargs):
-        """
-        Add a new library item using the factory pattern
-        """
         try:
             item_type = kwargs.pop('item_type', None)
             if not item_type:
                 return False, "Item type is required"
 
-            # Use the factory to create the appropriate item type
             library_item = LibraryItemFactory.create_item(item_type, **kwargs)
 
-            # Use the repository to add the item to the database
             return self.repository.add_item(library_item)
 
         except Exception as e:
-            logging.error(f"Failed to add library item: {e}")
             return False, str(e)
 
     def get_item(self, book_id):
@@ -66,11 +52,7 @@ class BookService:
     def get_available_items(self, item_type=None):
         """Get all available library items, optionally filtered by type"""
         return self.repository.get_available_items(item_type)
-
-# Builder pattern implementation for constructing complex library items
 class LibraryItemBuilder:
-    """Builder pattern for creating library items with many optional parameters"""
-
     def __init__(self, item_type, title, author_id):
         self.params = {
             'item_type': item_type,
@@ -100,16 +82,8 @@ class LibraryItemBuilder:
         return self
 
     # EBook specific
-    def with_file_path(self, path):
-        self.params['file_path'] = path
-        return self
-
-    def with_file_size(self, size):
-        self.params['file_size'] = size
-        return self
-
-    def with_cover_image(self, image_path):
-        self.params['cover_image_path'] = image_path
+    def with_cover_image(self, image_url):
+        self.params['cover_image_url'] = image_url
         return self
 
     def with_description(self, description):
@@ -130,10 +104,6 @@ class LibraryItemBuilder:
         return self
 
     # AudioBook specific
-    def with_audio_file_path(self, path):
-        self.params['audio_file_path'] = path
-        return self
-
     def with_narrator(self, narrator):
         self.params['narrator'] = narrator
         return self
@@ -143,15 +113,12 @@ class LibraryItemBuilder:
         return self
 
     def build(self):
-        """Build and return the library item using the factory"""
         return LibraryItemFactory.create_item(**self.params)
 
     def add_to_library(self):
-        """Build the item and add it directly to the library database"""
         try:
             item = self.build()
             service = BookService()
             return service.repository.add_item(item)
         except Exception as e:
-            logging.error(f"Failed to add library item: {e}")
             return False, str(e)
