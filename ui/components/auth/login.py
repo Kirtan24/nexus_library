@@ -50,11 +50,6 @@ class LoginPage(ctk.CTkFrame):
         self.username_entry = self.create_entry(container, "Username", width=300)
         self.password_entry = self.create_entry(container, "Password", show="*", width=300)
 
-        # login_button = ctk.CTkButton(container, text="Login", font=("Arial", 16, "bold"), fg_color=TEXT_COLOR, text_color=BACKGROUND_COLOR, command=self.validate_login)
-        # login_button.pack(pady=20)
-        # back_button = ctk.CTkButton(container, text="Back", font=("Arial", 16, "bold"), fg_color=TEXT_COLOR, text_color=BACKGROUND_COLOR, command=self.back)
-        # back_button.pack(pady=20)
-
          # Login and Back Buttons in One Row
         button_frame = ctk.CTkFrame(container, fg_color=BACKGROUND_COLOR)
         button_frame.pack(pady=10)
@@ -119,6 +114,7 @@ class LoginPage(ctk.CTkFrame):
             return
 
         success, message, user_data = self.auth_service.login(username, password)
+        self.master.user_data = user_data
         print(user_data)
         if success:
             self.master.show_home_page(user_data)

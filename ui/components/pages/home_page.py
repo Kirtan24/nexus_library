@@ -43,8 +43,6 @@ class HomePage(MainLayout):
         self.bind_mousewheel()
 
         self.create_welcome_section()
-        self.create_feature_cards()
-        self.create_popular_books_section()
 
     def on_canvas_configure(self, event):
         width = event.width
@@ -81,34 +79,6 @@ class HomePage(MainLayout):
             text_color=TEXT_COLOR
         )
         hero_subtitle.pack(pady=10)
-
-        search_frame = ctk.CTkFrame(welcome_frame, fg_color=BACKGROUND_COLOR)
-        search_frame.pack(pady=20)
-
-        self.search_entry = ctk.CTkEntry(
-            search_frame,
-            placeholder_text="Search for books, journals, research papers...",
-            width=600,
-            height=45,
-            font=("Arial", 14),
-            fg_color="#ffffff",
-            text_color=TEXT_COLOR,
-            border_color=SECONDARY_COLOR
-        )
-        self.search_entry.pack(side=ctk.LEFT, padx=(0, 10))
-
-        search_button = ctk.CTkButton(
-            search_frame,
-            text="Search",
-            command=self.perform_search,
-            fg_color=BUTTON_COLOR,
-            text_color=BUTTON_TEXT_COLOR,
-            hover_color=ACCENT_COLOR,
-            font=("Arial", 14),
-            width=100,
-            height=45
-        )
-        search_button.pack(side=ctk.LEFT)
 
     def create_feature_cards(self):
         features_frame = ctk.CTkFrame(self.content_frame, fg_color=BACKGROUND_COLOR)

@@ -332,6 +332,9 @@ class BookRepository:
         except Exception as e:
             return []
 
+    def search(self, query, params):
+        return self.db_controller.execute_query(query, params, fetch_results=True)
+
     def update_item_status(self, item_id, status):
         """Update a library item's availability status"""
         try:
@@ -353,8 +356,7 @@ class BookRepository:
             query_parts = [
                 "SELECT i.*, a.name as author_name",
                 "FROM items i",
-                "LEFT JOIN authors a ON i.author_id = a.author_id",
-                "WHERE i.availability_status = 'Available'"
+                "LEFT JOIN authors a ON i.author_id = a.author_id"
             ]
 
             params = []

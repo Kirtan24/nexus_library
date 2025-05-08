@@ -72,33 +72,29 @@ class MainLayout(ctk.CTkFrame):
             # Grouped navigation structure
             nav_groups = {
                 "Library": [
-                    {"text": "Search", "command": self.show_search},
-                    {"text": "Browse", "command": self.show_browse, "permission": "view_catalog"},
                     {"text": "My Books", "command": self.show_my_books, "permission": "borrow_physical_books"},
                     {"text": "Reservations", "command": self.show_reservations, "permission": "reserve_books"},
-                    {"text": "Extensions", "command": self.show_extensions, "permission": "extend_borrowing"},
                 ],
-                "Digital Access": [
-                    {"text": "eBooks", "command": self.show_ebooks, "permission": "access_ebooks"},
-                    {"text": "Audiobooks", "command": self.show_audiobooks, "permission": "access_audiobooks"},
-                    {"text": "Research", "command": self.show_research, "permission": "access_research_papers"},
-                ],
+                # "Digital Access": [
+                #     {"text": "eBooks", "command": self.show_ebooks, "permission": "access_ebooks"},
+                #     {"text": "Audiobooks", "command": self.show_audiobooks, "permission": "access_audiobooks"},
+                #     {"text": "Research", "command": self.show_research, "permission": "access_research_papers"},
+                # ],
                 "Admin Tools": [
                     {"text": "Users", "command": self.show_users, "permission": "manage_users"},
                     {"text": "Items", "command": self.show_manage_items, "permission": "manage_catalog"},
                     {"text": "Authors", "command": self.show_manage_author, "permission": "manage_catalog"},
                     {"text": "Reports", "command": self.show_reports, "permission": "view_reports"},
-                    {"text": "Settings", "command": self.show_settings, "permission": "system_config"},
-                    {"text": "Admin", "command": self.show_admin, "permission": "admin_access"},
                 ],
                 "Account": [
                     {"text": "Profile", "command": self.show_profile},
+                    {"text": "Notifications", "command": self.show_notifications},
                     {"text": "Logout", "command": self.master.logout}
                 ]
             }
 
-            # Always-visible Home button
             self.create_nav_button("Home", self.show_home)
+            self.create_nav_button("Browse", self.show_browse)
 
             for group_name, group_items in nav_groups.items():
                 filtered_items = [item for item in group_items if item.get("permission") is None or item["permission"] in permissions]
@@ -106,7 +102,7 @@ class MainLayout(ctk.CTkFrame):
                     self.create_dropdown(group_name, filtered_items)
         else:
             self.create_nav_button("Home", self.show_home)
-            self.create_nav_button("Search", self.show_search)
+            # self.create_nav_button("Search", self.show_search)
             self.create_nav_button("Browse", self.show_browse)
             self.create_nav_button("Login", self.show_login, solid=True)
             self.create_nav_button("Sign Up", self.show_register, fg_color=OFFWHITE_COLOR, text_color=TEXT_COLOR)
@@ -207,7 +203,6 @@ class MainLayout(ctk.CTkFrame):
 
     # Navigation command wrappers
     def show_home(self): self.master.show_home_page()
-    def show_search(self): self.master.show_search_page()
     def show_browse(self): self.master.show_browse_page()
     def show_my_books(self): self.master.show_my_books_page()
     def show_reservations(self): self.master.show_reservations_page()
@@ -222,5 +217,6 @@ class MainLayout(ctk.CTkFrame):
     def show_settings(self): self.master.show_settings_page()
     def show_admin(self): self.master.show_admin_page()
     def show_profile(self): self.master.show_profile_page()
+    def show_notifications(self): pass
     def show_login(self): self.master.show_login_page()
     def show_register(self): self.master.show_register_page()

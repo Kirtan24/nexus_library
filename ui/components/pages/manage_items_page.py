@@ -186,7 +186,7 @@ class ItemManagementPage(ctk.CTkFrame):
             {"name": "genre", "label": "Genre", "required": False},
             {"name": "publication_year", "label": "Publication Year", "required": False},
             {"name": "availability_status", "label": "Status", "required": False,
-             "dropdown": ["Available", "Borrowed", "On Hold", "Processing"]}
+             "dropdown": ["Available", "Unavailable", "Borrowed", "Reserved"]},
         ]
 
         # Type-specific fields

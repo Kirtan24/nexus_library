@@ -25,7 +25,6 @@ class LibraryItemFactory:
         elif item_type == 'EBook':
             return {
                 **base_fields,
-                'cover_image_url': kwargs.get('cover_image_url'),
                 'description': kwargs.get('description')
             }
         elif item_type == 'ResearchPaper':

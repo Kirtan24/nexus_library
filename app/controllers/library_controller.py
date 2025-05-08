@@ -43,8 +43,6 @@ class LibraryController:
                 builder.with_isbn(kwargs['isbn'])
 
         elif item_type == 'EBook':
-            if 'cover_image_url' in kwargs:
-                builder.with_cover_image(kwargs['cover_image_url'])
             if 'description' in kwargs:
                 builder.with_description(kwargs['description'])
 

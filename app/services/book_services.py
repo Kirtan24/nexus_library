@@ -1,5 +1,6 @@
 from app.repositories.book_repository import BookRepository
 from app.controllers.library_item import LibraryItemFactory
+from app.services.search_stretegy import KeywordSearchStrategy, AuthorSearchStrategy, GenreSearchStrategy
 class BookService:
     _instance = None
 
@@ -14,6 +15,7 @@ class BookService:
             return
 
         self.repository = BookRepository()
+        self.search_strategy = KeywordSearchStrategy()
         self.initialized = True
 
     def add_item(self, **kwargs):
@@ -40,6 +42,22 @@ class BookService:
     def delete_item(self, book_id):
         """Delete a library item if possible"""
         return self.repository.delete_item(book_id)
+
+    def set_search_strategy(self, strategy_name):
+        """Set the search strategy to use"""
+        if strategy_name == "author":
+            self.search_strategy = AuthorSearchStrategy()
+        elif strategy_name == "genre":
+            self.search_strategy = GenreSearchStrategy()
+        else:
+            self.search_strategy = KeywordSearchStrategy()
+
+    def search(self, search_term):
+        try:
+            query, params = self.search_strategy.build_query(search_term)
+            return self.repository.search(query, params)
+        except Exception as e:
+            return []
 
     def search_items(self, title=None, author=None, genre=None, item_type=None):
         """Search library items by various criteria"""
@@ -79,11 +97,6 @@ class LibraryItemBuilder:
 
     def with_isbn(self, isbn):
         self.params['isbn'] = isbn
-        return self
-
-    # EBook specific
-    def with_cover_image(self, image_url):
-        self.params['cover_image_url'] = image_url
         return self
 
     def with_description(self, description):

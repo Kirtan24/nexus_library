@@ -8,10 +8,6 @@ data = [
     {"ID": 3, "Name": "Design Patterns", "Author": "Erich Gamma"},
 ]
 
-# CustomTkinter setup
-ctk.set_appearance_mode("dark")
-ctk.set_default_color_theme("blue")
-
 class DataTable(ctk.CTkFrame):
     def __init__(self, master):
         super().__init__(master)
@@ -49,7 +45,3 @@ class DataTable(ctk.CTkFrame):
         if confirm:
             messagebox.showinfo("Deleted", f"{item['Name']} deleted!")
             # You'd also update the data model and refresh the UI here
-
-if __name__ == "__main__":
-    app = App()
-    app.mainloop()
