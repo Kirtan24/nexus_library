@@ -1,7 +1,6 @@
 import customtkinter as ctk
 import tkinter as tk
 from tkinter import messagebox
-import logging
 
 from app.services.book_services import BookService
 from ui.components.pages.searchbar import SearchBar
@@ -15,7 +14,6 @@ class BrowsePage(MainLayout):
         self.master = master
         self.show_item_detail_callback = show_item_detail_callback
         self.book_service = BookService()
-        self.logger = logging.getLogger(__name__)
 
         self.current_search_term = ""
         self.current_search_strategy = "keyword"

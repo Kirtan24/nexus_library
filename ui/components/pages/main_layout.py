@@ -88,7 +88,6 @@ class MainLayout(ctk.CTkFrame):
                 ],
                 "Account": [
                     {"text": "Profile", "command": self.show_profile},
-                    {"text": "Notifications", "command": self.show_notifications},
                     {"text": "Logout", "command": self.master.logout}
                 ]
             }
@@ -202,7 +201,7 @@ class MainLayout(ctk.CTkFrame):
         self.update_navigation()
 
     # Navigation command wrappers
-    def show_home(self): self.master.show_home_page()
+    def show_home(self): self.master.show_home_page(self.user)
     def show_browse(self): self.master.show_browse_page()
     def show_my_books(self): self.master.show_my_books_page()
     def show_reservations(self): self.master.show_reservations_page()

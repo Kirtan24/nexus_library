@@ -1,4 +1,5 @@
 import tkinter as tk
+from tkinter import messagebox
 from ui.components.auth.login import LoginPage
 from ui.components.auth.register import RegisterPage
 from ui.components.pages.home_page import HomePage
@@ -9,7 +10,6 @@ from ui.components.pages.browse_page import BrowsePage
 from ui.components.pages.book_details import BookDetailView
 from ui.components.pages.my_books import MyBorrowedBooksPage
 from ui.components.pages.reservation_page import ReservationsPage
-from ui.components.pages.extra_page import DataTable
 from app.services.auth_services import AuthenticationService
 
 class App(tk.Frame):
@@ -43,22 +43,18 @@ class App(tk.Frame):
                 widget.set_user(None)
                 widget.update_navigation()
 
-    def show_extra_page(self):
-        self.clear_frame()
-        DataTable(self)
-
     def show_home_page(self, user_data=None):
         self.clear_frame()
         HomePage(self, user_data)
 
     def show_browse_page(self):
         self.clear_frame()
-        # DataTable(self)
         BrowsePage(self, self.show_item_detail_page)
 
     def show_item_detail_page(self, item_id):
-        print(item_id)
-        print(self.user_data['user_id'])
+        if self.user_data is None:
+            messagebox.showinfo("Info", "Please log in to view item details.")
+            self.show_login_page()
         BookDetailView(self, item_id, self.user_data['user_id'])
 
     def show_my_books_page(self):
@@ -67,8 +63,8 @@ class App(tk.Frame):
 
     def show_reservations_page(self):
         self.clear_frame()
+        print(self.user_data['user_id'])
         ReservationsPage(self, self.user_data['user_id'])
-
 
     def show_manage_items_page(self):
         self.clear_frame()

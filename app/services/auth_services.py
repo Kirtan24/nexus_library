@@ -1,5 +1,3 @@
-# app/services/authentication_service.py
-
 from app.controllers.user_controller import UserController
 import logging
 

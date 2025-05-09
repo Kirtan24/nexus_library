@@ -2,10 +2,12 @@
 
 
 from app.controllers.db_controller import DatabaseController
+from app.services.observer_service import ObserverService
 
 class BorrowRepository:
     def __init__(self):
         self.db_controller = DatabaseController()
+        self.observer_service = ObserverService()
 
     def create_borrow_record(self, user_id, book_id, borrow_date, due_date):
         try:
@@ -43,6 +45,81 @@ class BorrowRepository:
 
         except Exception as e:
             return False, str(e)
+
+    def _update_book_availability(self, book_id, borrowed):
+        """Update book availability status and handle printed book copies"""
+        try:
+            item_query = """
+                SELECT i.item_type, i.availability_status,
+                    pb.available_copies, pb.total_copies
+                FROM items i
+                LEFT JOIN printed_books pb ON i.item_id = pb.item_id
+                WHERE i.item_id = %s;
+            """
+            item_result = self.db_controller.execute_query(item_query, (book_id,), True)
+
+            if not item_result:
+                return False
+
+            item_type = item_result[0]['item_type']
+            current_status = item_result[0]['availability_status']
+
+            if item_type == 'PrintedBook':
+                available_copies = item_result[0]['available_copies']
+                total_copies = item_result[0]['total_copies']
+
+                if borrowed and available_copies <= 0:
+                    return False
+                if not borrowed and available_copies >= total_copies:
+                    return False
+
+                copies_query = """
+                    UPDATE printed_books
+                    SET available_copies = available_copies - 1
+                    WHERE item_id = %s AND available_copies > 0
+                    RETURNING available_copies;
+                """ if borrowed else """
+                    UPDATE printed_books
+                    SET available_copies = available_copies + 1
+                    WHERE item_id = %s AND available_copies < total_copies
+                    RETURNING available_copies;
+                """
+                copies_result = self.db_controller.execute_query(copies_query, (book_id,), True)
+
+                if not copies_result:
+                    return False
+
+                available_copies = copies_result[0]['available_copies']
+                new_status = 'Available' if available_copies > 0 else 'Unavailable'
+
+                if new_status != current_status:
+                    status_query = """
+                        UPDATE items
+                        SET availability_status = %s
+                        WHERE item_id = %s;
+                    """
+                    self.db_controller.execute_query(status_query, (new_status, book_id))
+
+                    if new_status == 'Available' and not borrowed:
+                        self.observer_service.notify(book_id)
+            else:
+                new_status = 'Unavailable' if borrowed else 'Available'
+
+                if new_status != current_status:
+                    status_query = """
+                        UPDATE items
+                        SET availability_status = %s
+                        WHERE item_id = %s;
+                    """
+                    self.db_controller.execute_query(status_query, (new_status, book_id))
+
+                    if new_status == 'Available' and not borrowed:
+                        self.observer_service.notify(book_id)
+            return True
+
+        except Exception as e:
+            print(f"Error updating book availability: {e}")
+            return False
 
     def get_borrow_record(self, record_id):
         try:

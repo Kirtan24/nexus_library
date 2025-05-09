@@ -1,5 +1,5 @@
 from app.repositories.book_repository import BookRepository
-from app.controllers.library_item import LibraryItemFactory
+from app.controllers.library_items_factory import LibraryItemFactory
 from app.services.search_stretegy import KeywordSearchStrategy, AuthorSearchStrategy, GenreSearchStrategy
 class BookService:
     _instance = None

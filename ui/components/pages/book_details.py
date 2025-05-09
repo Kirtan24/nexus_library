@@ -3,7 +3,6 @@ from tkinter import messagebox
 from datetime import datetime, timedelta
 from app.controllers.db_controller import DatabaseController
 from app.services.observer_service import ObserverService
-from app.services.notification_service import NotificationService
 from app.repositories.book_repository import BookRepository
 from app.repositories.borrow_repository import BorrowRepository
 
@@ -17,7 +16,6 @@ class BookDetailView(ctk.CTkFrame):
         self.book_repo = BookRepository()
         self.borrow_repo = BorrowRepository()
         self.observer_service = ObserverService()
-        self.notification_service = NotificationService()
 
         self.grid_columnconfigure(0, weight=1)
         self.grid_rowconfigure(1, weight=1)
@@ -283,7 +281,7 @@ class BookDetailView(ctk.CTkFrame):
                 text="View Details",
                 state="normal",
                 fg_color="#708090",  # Slate gray for view
-                command=lambda: None
+                command=self.view_details
             )
 
     def handle_action(self):
@@ -307,7 +305,6 @@ class BookDetailView(ctk.CTkFrame):
 
     def borrow_book(self):
         try:
-            # First check if the user already has this book borrowed
             existing_borrow = self.borrow_repo.get_active_borrow_record(self.user_id, self.item_id)
             if existing_borrow:
                 messagebox.showwarning(
@@ -316,11 +313,9 @@ class BookDetailView(ctk.CTkFrame):
                 )
                 return
 
-            # Calculate dates (borrow for 14 days)
             borrow_date = datetime.now().date()
             due_date = borrow_date + timedelta(days=14)
 
-            # Create borrow record
             success, result = self.borrow_repo.create_borrow_record(
                 self.user_id,
                 self.item_id,
@@ -329,7 +324,6 @@ class BookDetailView(ctk.CTkFrame):
             )
 
             if success:
-                # Update available copies
                 current_copies = self.book_repo.get_item(self.item_id).get('available_copies', 1)
                 self.book_repo.update_item(
                     self.item_id,
@@ -337,36 +331,84 @@ class BookDetailView(ctk.CTkFrame):
                     available_copies=current_copies - 1
                 )
 
-                # Update status if no copies left
                 if current_copies - 1 == 0:
                     self.book_repo.update_item(
                         self.item_id,
                         'PrintedBook',
-                        availability_status='Checked Out'
+                        availability_status='Unavailable'
                     )
 
                 messagebox.showinfo("Success", f"Book borrowed successfully. Due date: {due_date}")
-                self.load_book_details()  # Refresh the view
+                self.load_book_details()
             else:
                 messagebox.showerror("Error", result)
         except Exception as e:
             messagebox.showerror("Error", f"Failed to borrow book: {str(e)}")
 
+    # def return_book(self):
+    #     try:
+    #         # Get the active borrow record
+    #         borrow_record = self.borrow_repo.get_active_borrow_record(self.user_id, self.item_id)
+    #         if not borrow_record:
+    #             messagebox.showerror("Error", "No active borrow record found")
+    #             return
+
+    #         # Calculate fine if overdue
+    #         return_date = datetime.now().date()
+    #         due_date = borrow_record['due_date']
+    #         fine_amount = 0.0
+
+    #         if return_date > due_date:
+    #             days_overdue = (return_date - due_date).days
+    #             fine_amount = days_overdue * 5.0
+    #             messagebox.showwarning(
+    #                 "Overdue Book",
+    #                 f"This book is {days_overdue} days overdue. A fine of ${fine_amount:.2f} will be charged."
+    #             )
+
+    #         success, result = self.borrow_repo.close_borrow_record(
+    #             borrow_record['record_id'],
+    #             return_date,
+    #             fine_amount
+    #         )
+
+    #         if success:
+    #             current_copies = self.book_repo.get_item(self.item_id).get('available_copies', 0)
+    #             self.book_repo.update_item(
+    #                 self.item_id,
+    #                 'PrintedBook',
+    #                 available_copies=current_copies + 1,
+    #                 availability_status='Available' if current_copies + 1 > 0 else 'Checked Out'
+    #             )
+
+    #             if fine_amount > 0:
+    #                 self.borrow_repo.create_fine(
+    #                     self.user_id,
+    #                     borrow_record['record_id'],
+    #                     fine_amount
+    #                 )
+
+    #             messagebox.showinfo("Success", "Book returned successfully")
+    #             self.load_book_details()  # Refresh the view
+
+
+    #         else:
+    #             messagebox.showerror("Error", result)
+    #     except Exception as e:
+    #         messagebox.showerror("Error", f"Failed to return book: {str(e)}")
+
     def return_book(self):
         try:
-            # Get the active borrow record
             borrow_record = self.borrow_repo.get_active_borrow_record(self.user_id, self.item_id)
             if not borrow_record:
                 messagebox.showerror("Error", "No active borrow record found")
                 return
 
-            # Calculate fine if overdue
             return_date = datetime.now().date()
             due_date = borrow_record['due_date']
             fine_amount = 0.0
 
             if return_date > due_date:
-                # Calculate fine (example: $1 per day overdue)
                 days_overdue = (return_date - due_date).days
                 fine_amount = days_overdue * 5.0
                 messagebox.showwarning(
@@ -374,35 +416,66 @@ class BookDetailView(ctk.CTkFrame):
                     f"This book is {days_overdue} days overdue. A fine of ${fine_amount:.2f} will be charged."
                 )
 
-            # Update borrow record
             success, result = self.borrow_repo.close_borrow_record(
                 borrow_record['record_id'],
                 return_date,
                 fine_amount
             )
 
-            if success:
-                # Update available copies
-                current_copies = self.book_repo.get_item(self.item_id).get('available_copies', 0)
-                self.book_repo.update_item(
+            if not success:
+                messagebox.showerror("Error", result)
+                return
+
+            book_details = self.book_repo.get_item(self.item_id)
+            if not book_details:
+                messagebox.showerror("Error", "Book details not found")
+                return
+
+            if book_details['item_type'] == 'PrintedBook':
+                current_copies = book_details.get('available_copies', 0)
+                total_copies = book_details.get('total_copies', 1)
+                new_copies = current_copies + 1
+
+                if new_copies > total_copies:
+                    messagebox.showerror("Error", "Cannot return more copies than total inventory")
+                    return
+
+                new_status = 'Available' if new_copies > 0 else 'Unavailable'
+
+                success, message = self.book_repo.update_item(
                     self.item_id,
                     'PrintedBook',
-                    available_copies=current_copies + 1,
-                    availability_status='Available' if current_copies + 1 > 0 else 'Checked Out'
+                    available_copies=new_copies,
+                    availability_status=new_status
                 )
 
-                # Create fine record if applicable
-                if fine_amount > 0:
-                    self.borrow_repo.create_fine(
-                        self.user_id,
-                        borrow_record['record_id'],
-                        fine_amount
-                    )
-
-                messagebox.showinfo("Success", "Book returned successfully")
-                self.load_book_details()  # Refresh the view
+                if new_status == 'Available' and current_copies == 0:
+                    self.observer_service.notify(self.item_id)
             else:
-                messagebox.showerror("Error", result)
+                success, message = self.book_repo.update_item(
+                    self.item_id,
+                    book_details['item_type'],
+                    availability_status='Available'
+                )
+
+                self.observer_service.notify(self.item_id)
+
+            if not success:
+                messagebox.showerror("Error", message)
+                return
+
+            if fine_amount > 0:
+                fine_success, fine_result = self.borrow_repo.create_fine(
+                    self.user_id,
+                    borrow_record['record_id'],
+                    fine_amount
+                )
+                if not fine_success:
+                    messagebox.showwarning("Warning", f"Book returned but failed to create fine: {fine_result}")
+
+            messagebox.showinfo("Success", "Book returned successfully")
+            self.load_book_details()
+
         except Exception as e:
             messagebox.showerror("Error", f"Failed to return book: {str(e)}")
 
@@ -432,3 +505,6 @@ class BookDetailView(ctk.CTkFrame):
 
     def play_audio_sample(self):
         messagebox.showinfo("Audio Sample", "Playing audio sample...")
+
+    def view_details(self):
+        messagebox.showinfo("Research Paper", "Research paper details...")

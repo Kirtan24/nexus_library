@@ -2,10 +2,6 @@ import customtkinter as ctk
 from PIL import Image
 from tkinter import messagebox
 import os
-import sys
-
-# Add parent directory to path to import from app
-sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))))
 from app.services.auth_services import AuthenticationService
 
 # Theme Colors

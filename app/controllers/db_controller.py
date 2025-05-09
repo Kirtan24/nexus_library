@@ -31,7 +31,7 @@ class DatabaseController:
 
         self.initialized = True
 
-    def execute_query(self, query, params=None, fetch_results=False):
+    def     execute_query(self, query, params=None, fetch_results=False):
         """
         Execute a database query with optional parameters.
 

@@ -207,7 +207,7 @@ class ItemManagementPage(ctk.CTkFrame):
             ],
             "AudioBook": [
                 {"name": "narrator", "label": "Narrator", "required": False},
-                {"name": "duration", "label": "Duration (min)", "required": False},
+                {"name": "duration_minutes", "label": "Duration (min)", "required": False},
                 {"name": "description", "label": "Description", "required": False, "multiline": True}
             ]
         }
@@ -545,6 +545,45 @@ class ItemManagementPage(ctk.CTkFrame):
             tag = "even" if i % 2 == 0 else "odd"
             self.table.insert("", "end", values=(item_id, title, author, item_type, status), tags=(tag,))
 
+    # def edit_selected_item(self):
+    #     """Load the selected item into the form for editing"""
+    #     selected = self.table.selection()
+    #     if not selected:
+    #         messagebox.showinfo("Info", "Please select an item to edit.")
+    #         return
+
+    #     # Get item ID from the selected row
+    #     item_id = self.table.item(selected[0])["values"][0]
+
+    #     # Fetch item details
+    #     item = self.library_controller.get_item(item_id)
+    #     print(item)
+    #     if not item:
+    #         messagebox.showerror("Error", "Failed to load item details.")
+    #         return
+
+    #     self.is_edit_mode = True
+    #     self.current_item_id = item_id
+    #     self.form_title_label.configure(text=f"Edit Item #{item_id}")
+    #     self.save_button.configure(text="Update Item")
+
+    #     self.current_item_type.set(item["item_type"])
+    #     self.on_type_change()
+
+    #     # Populate form fields with item data
+    #     for name, field in self.form_fields.items():
+    #         print(name, field)
+    #         value = item.get(name, "")
+    #         if value is not None:
+    #             if isinstance(field, ctk.CTkTextbox):
+    #                 field.delete("1.0", ctk.END)
+    #                 field.insert("1.0", str(value))
+    #             elif isinstance(field, ctk.CTkEntry):
+    #                 field.delete(0, ctk.END)
+    #                 field.insert(0, str(value))
+    #             elif isinstance(field, ctk.CTkComboBox):
+    #                 field.set(str(value))
+
     def edit_selected_item(self):
         """Load the selected item into the form for editing"""
         selected = self.table.selection()
@@ -552,39 +591,49 @@ class ItemManagementPage(ctk.CTkFrame):
             messagebox.showinfo("Info", "Please select an item to edit.")
             return
 
-        # Get item ID from the selected row
         item_id = self.table.item(selected[0])["values"][0]
 
-        # Fetch item details
         item = self.library_controller.get_item(item_id)
-        print(item)
         if not item:
             messagebox.showerror("Error", "Failed to load item details.")
             return
 
-        # Set form to edit mode
+        print("Item data received:", item)
+
         self.is_edit_mode = True
         self.current_item_id = item_id
         self.form_title_label.configure(text=f"Edit Item #{item_id}")
         self.save_button.configure(text="Update Item")
 
-        # Set item type first (this will recreate form fields)
+        # Set the item type first
         self.current_item_type.set(item["item_type"])
-        self.on_type_change()
+        # Recreate form fields for the correct type
+        self.create_form_fields()
 
-        # Populate form fields with item data
+        # Give the UI a moment to update
+        self.update_idletasks()
+
+        # Populate ALL form fields with item data
         for name, field in self.form_fields.items():
             value = item.get(name, "")
-            if value is not None:
-                if isinstance(field, ctk.CTkTextbox):
-                    field.delete("1.0", ctk.END)
-                    field.insert("1.0", str(value))
-                elif isinstance(field, ctk.CTkEntry):
-                    field.delete(0, ctk.END)
-                    field.insert(0, str(value))
-                elif isinstance(field, ctk.CTkComboBox):
-                    field.set(str(value))  # Use .set() for CTkComboBox
+            print(f"Setting field {name} to {value}")  # Debug print
 
+            if value is not None:
+                try:
+                    if isinstance(field, ctk.CTkTextbox):
+                        field.delete("1.0", ctk.END)
+                        field.insert("1.0", str(value))
+                    elif isinstance(field, ctk.CTkEntry):
+                        field.delete(0, ctk.END)
+                        field.insert(0, str(value))
+                    elif isinstance(field, ctk.CTkComboBox):
+                        # Try to set the value, fall back to first option if not available
+                        if str(value) in field._values:
+                            field.set(str(value))
+                        elif field._values:
+                            field.set(field._values[0])
+                except Exception as e:
+                    print(f"Error setting field {name}: {e}")  # Debug print
 
     def delete_selected_item(self):
         """Delete the selected item"""

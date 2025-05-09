@@ -1,6 +1,6 @@
 from app.models import BorrowRecord
-from repositories.borrow_repository import BorrowRepository
-from repositories.book_repository import BookRepository
+from app.repositories.borrow_repository import BorrowRepository
+from app.repositories.book_repository import BookRepository
 from datetime import datetime, timedelta
 import logging
 
@@ -38,6 +38,10 @@ class BorrowController:
 
         logging.info(f"User {user_id} borrowed book {book_id}. Due: {due_date}")
         return True, f"Book borrowed successfully. Due date: {due_date.strftime('%Y-%m-%d')}"
+
+    def update_book_availability(self, book_id, status):
+        """Update the availability status of a book"""
+        return self.book_repository.update_book_status(book_id, status)
 
     def get_borrow_record(self, record_id):
         result = self.borrow_repository.get_borrow_record(record_id)
