@@ -32,19 +32,15 @@ class BookService:
             return False, str(e)
 
     def get_item(self, book_id):
-        """Get a single library item by ID"""
         return self.repository.get_item(book_id)
 
     def update_item(self, book_id, item_type, **kwargs):
-        """Update library item details"""
         return self.repository.update_item(book_id, item_type, **kwargs)
 
     def delete_item(self, book_id):
-        """Delete a library item if possible"""
         return self.repository.delete_item(book_id)
 
     def set_search_strategy(self, strategy_name):
-        """Set the search strategy to use"""
         if strategy_name == "author":
             self.search_strategy = AuthorSearchStrategy()
         elif strategy_name == "genre":
@@ -52,24 +48,27 @@ class BookService:
         else:
             self.search_strategy = KeywordSearchStrategy()
 
-    def search(self, search_term):
+    def search(self, search_term, exclude_research_papers=False):
         try:
             query, params = self.search_strategy.build_query(search_term)
+            if exclude_research_papers:
+                if "WHERE" in query:
+                    query = query.replace("WHERE", "WHERE i.item_type != 'ResearchPaper' AND")
+                else:
+                    query += " WHERE i.item_type != 'ResearchPaper'"
+            print(query, params)
             return self.repository.search(query, params)
         except Exception as e:
             return []
 
     def search_items(self, title=None, author=None, genre=None, item_type=None):
-        """Search library items by various criteria"""
         return self.repository.search_items(title, author, genre, item_type)
 
     def update_item_status(self, book_id, status):
-        """Update a library item's availability status"""
         return self.repository.update_item_status(book_id, status)
 
-    def get_available_items(self, item_type=None):
-        """Get all available library items, optionally filtered by type"""
-        return self.repository.get_available_items(item_type)
+    def get_available_items(self, item_type=None,exclude_research_papers=False):
+        return self.repository.get_available_items(item_type, exclude_research_papers)
 class LibraryItemBuilder:
     def __init__(self, item_type, title, author_id):
         self.params = {
@@ -90,7 +89,6 @@ class LibraryItemBuilder:
         self.params['availability_status'] = status
         return self
 
-    # PrintedBook specific
     def with_shelf_location(self, location):
         self.params['shelf_location'] = location
         return self
@@ -103,7 +101,6 @@ class LibraryItemBuilder:
         self.params['description'] = description
         return self
 
-    # ResearchPaper specific
     def with_abstract(self, abstract):
         self.params['abstract'] = abstract
         return self
@@ -116,7 +113,6 @@ class LibraryItemBuilder:
         self.params['doi'] = doi
         return self
 
-    # AudioBook specific
     def with_narrator(self, narrator):
         self.params['narrator'] = narrator
         return self

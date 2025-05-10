@@ -9,7 +9,9 @@ from ui.components.pages.manage_author_page import AuthorManagementPage
 from ui.components.pages.browse_page import BrowsePage
 from ui.components.pages.book_details import BookDetailView
 from ui.components.pages.my_books import MyBorrowedBooksPage
+from ui.components.pages.research_paper_page import ResearchPapersPage
 from ui.components.pages.reservation_page import ReservationsPage
+from ui.components.pages.profile_page import ProfilePage
 from app.services.auth_services import AuthenticationService
 
 class App(tk.Frame):
@@ -47,6 +49,15 @@ class App(tk.Frame):
         self.clear_frame()
         HomePage(self, user_data)
 
+    def show_profile_page(self):
+        if self.user_data is None:
+            messagebox.showinfo("Info", "Please log in to view your profile.")
+            self.show_login_page()
+            return
+
+        self.clear_frame()
+        ProfilePage(self, self.user_data)
+
     def show_browse_page(self):
         self.clear_frame()
         BrowsePage(self, self.show_item_detail_page)
@@ -77,3 +88,16 @@ class App(tk.Frame):
     def clear_frame(self):
         for widget in self.winfo_children():
             widget.destroy()
+
+    def show_research_page(self):
+        if self.user_data is None:
+            messagebox.showinfo("Info", "Please log in to access research papers.")
+            self.show_login_page()
+            return
+
+        if "access_research_papers" not in self.user_data.get("permissions", []):
+            messagebox.showwarning("Access Denied", "You don't have permission to access research papers.")
+            return
+
+        self.clear_frame()
+        ResearchPapersPage(self, self.show_item_detail_page)

@@ -1,12 +1,6 @@
 class LibraryItemFactory:
-    """
-    Factory pattern implementation for creating different types of library items.
-    """
     @staticmethod
     def create_item(item_type, **kwargs):
-        """
-        Create a library item based on the item_type
-        """
         base_fields = {
             'title': kwargs.get('title'),
             'author_id': kwargs.get('author_id'),

@@ -4,13 +4,11 @@ from tkinter import messagebox
 import os
 from app.services.auth_services import AuthenticationService
 
-# Theme Colors
 BACKGROUND_COLOR = "#f8f9fa"
 TEXT_COLOR = "#000000"
 PLACEHOLDER_COLOR = "#888888"
 BORDER_COLOR = "#a875ff"
 
-# User Roles
 USER_ROLES = ["Select Role", "Guest", "Student", "Researcher", "Faculty", "Librarian"]
 
 class RegisterPage(ctk.CTkFrame):
@@ -29,11 +27,11 @@ class RegisterPage(ctk.CTkFrame):
         self.create_ui()
 
     def create_ui(self):
-        # Container for Content
+
         container = ctk.CTkFrame(self, fg_color=BACKGROUND_COLOR)
         container.place(relx=0.5, rely=0.5, anchor="center")
 
-        # Logo
+
         try:
             img_path = os.path.join("assets", "logo", "logo.png")
             logo_img = ctk.CTkImage(light_image=Image.open(img_path), dark_image=Image.open(img_path), size=(100, 100))
@@ -41,38 +39,37 @@ class RegisterPage(ctk.CTkFrame):
         except Exception as e:
             print(f"Error loading logo: {e}")
 
-        # Title
+
         ctk.CTkLabel(container, text="Register", text_color=TEXT_COLOR, font=("Arial", 36, "bold")).pack(pady=10)
 
-        # Role Selector
+
         self.role_var = ctk.StringVar(value=USER_ROLES[0])
         self.create_labeled_widget(container, "Select User Role",
             ctk.CTkComboBox(container, values=USER_ROLES, variable=self.role_var,
                            fg_color="#ffffff", text_color=TEXT_COLOR, width=410))
 
-        # Form Fields (2x2 Grid)
         fields_frame = ctk.CTkFrame(container, fg_color=BACKGROUND_COLOR)
         fields_frame.pack(pady=10)
 
-        # Row 1: Name and Username
+
         row1 = ctk.CTkFrame(fields_frame, fg_color=BACKGROUND_COLOR)
         row1.pack(fill="x", pady=5)
         self.name_entry = self.create_labeled_entry(row1, "Full Name", "Full Name", side=ctk.LEFT)
         self.username_entry = self.create_labeled_entry(row1, "Username", "Username", side=ctk.RIGHT)
 
-        # Row 2: Email and Phone
+
         row2 = ctk.CTkFrame(fields_frame, fg_color=BACKGROUND_COLOR)
         row2.pack(fill="x", pady=5)
         self.email_entry = self.create_labeled_entry(row2, "Email Address", "Email Address", side=ctk.LEFT)
         self.phone_entry = self.create_labeled_entry(row2, "Phone Number", "Phone Number", side=ctk.RIGHT)
 
-        # Row 3: Password and Confirm Password
+
         row3 = ctk.CTkFrame(fields_frame, fg_color=BACKGROUND_COLOR)
         row3.pack(fill="x", pady=5)
         self.password_entry = self.create_labeled_entry(row3, "Password", "Password", side=ctk.LEFT, show="*")
         self.confirm_password_entry = self.create_labeled_entry(row3, "Confirm Password", "Confirm Password", side=ctk.RIGHT, show="*")
 
-         # Login and Back Buttons in One Row
+
         button_frame = ctk.CTkFrame(container, fg_color=BACKGROUND_COLOR)
         button_frame.pack(pady=10)
 
@@ -82,7 +79,7 @@ class RegisterPage(ctk.CTkFrame):
         back_button = ctk.CTkButton(button_frame, text="Back", font=("Arial", 16, "bold"), fg_color=TEXT_COLOR, text_color=BACKGROUND_COLOR,width=80, command=self.master.show_home_page)
         back_button.pack(side=ctk.LEFT)
 
-        # Login Link
+
         login_frame = ctk.CTkFrame(container, fg_color=BACKGROUND_COLOR)
         login_frame.pack()
         ctk.CTkLabel(login_frame, text="Already have an account?", text_color=TEXT_COLOR,
@@ -118,7 +115,7 @@ class RegisterPage(ctk.CTkFrame):
         entry.pack(pady=2)
         entry.insert(0, placeholder)
 
-        # Focus event handlers
+
         entry.bind("<FocusIn>", lambda e: self.on_entry_focus_in(e, entry, placeholder, show))
         entry.bind("<FocusOut>", lambda e: self.on_entry_focus_out(e, entry, placeholder))
 
@@ -137,7 +134,7 @@ class RegisterPage(ctk.CTkFrame):
             entry.configure(text_color=PLACEHOLDER_COLOR, show=None)
 
     def register_user(self):
-        # Get all form values
+
         data = {
             'role': self.role_var.get(),
             'name': self.name_entry.get(),
@@ -148,7 +145,7 @@ class RegisterPage(ctk.CTkFrame):
             'confirm_password': self.confirm_password_entry.get()
         }
 
-        # Validate required fields
+
         if data['role'] == USER_ROLES[0]:
             messagebox.showerror("Error", "Please select a valid user role!")
             return
@@ -157,7 +154,7 @@ class RegisterPage(ctk.CTkFrame):
             messagebox.showerror("Error", "All fields except phone number are required!")
             return
 
-        # Call authentication service
+
         success, message = self.auth_service.register(
             data['username'], data['email'], data['password'], data['confirm_password'],
             data['name'], data['phone'], data['role'].lower()

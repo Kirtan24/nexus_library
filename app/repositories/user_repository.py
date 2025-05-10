@@ -1,5 +1,4 @@
 import bcrypt
-import logging
 from datetime import datetime
 from app.controllers.db_controller import DatabaseController
 import psycopg2
@@ -7,7 +6,6 @@ import psycopg2
 class UserRepository:
     def __init__(self):
         self.db_controller = DatabaseController()
-        logging.info("UserRepository initialized")
 
     def register_user(self, username, email, password, name, phone_number, role_name):
         try:
@@ -28,19 +26,16 @@ class UserRepository:
 
             self.db_controller.execute_query("INSERT INTO user_roles (user_id, role_id) VALUES (%s, %s);", (user_result[0]['user_id'], role_result[0]['role_id']))
 
-            logging.info(f"User {username} registered with role {role_name}")
             return True, "User registered successfully"
 
         except psycopg2.errors.UniqueViolation as e:
-            logging.error(f"Duplicate entry: {e}")
             return False, "Username or email already exists"
         except Exception as e:
-            logging.error(f"Registration failed: {e}")
             return False, str(e)
 
     def verify_login(self, username, password):
         query = """
-            SELECT u.user_id, u.username, u.password_hash, u.account_status, r.role_name, r.role_id
+            SELECT u.*, r.role_name, r.role_id
             FROM users u
             JOIN user_roles ur ON u.user_id = ur.user_id
             JOIN roles r ON ur.role_id = r.role_id
@@ -61,7 +56,6 @@ class UserRepository:
                     (datetime.now(), user['user_id'])
                 )
 
-                # Fetch permissions for this role
                 permissions_query = """
                     SELECT p.permission_name
                     FROM role_permissions rp
@@ -77,12 +71,14 @@ class UserRepository:
                     'user_id': user['user_id'],
                     'username': user['username'],
                     'role': user['role_name'],
+                    'name': user['name'],
+                    'email': user['email'],
+                    'phone_number': user['phone_number'],
                     'permissions': permissions
                 }
             return False, "Invalid username or password", None
 
         except Exception as e:
-            logging.error(f"Login failed: {e}")
             return False, "Login failed due to an error", None
 
 
@@ -100,7 +96,6 @@ class UserRepository:
             result = self.db_controller.execute_query(query, (user_id,), True)
             return result[0] if result else None
         except Exception as e:
-            logging.error(f"Failed to retrieve user: {e}")
             return None
 
     def update_user(self, user_id, name=None, email=None, phone_number=None):
@@ -134,12 +129,10 @@ class UserRepository:
             return True, "User information updated successfully"
 
         except Exception as e:
-            logging.error(f"Failed to update user: {e}")
             return False, str(e)
 
     def change_password(self, user_id, current_password, new_password):
         try:
-            # Get current password hash
             query = "SELECT password_hash FROM users WHERE user_id = %s;"
             result = self.db_controller.execute_query(query, (user_id,), True)
 
@@ -158,5 +151,4 @@ class UserRepository:
             return True, "Password changed successfully"
 
         except Exception as e:
-            logging.error(f"Failed to change password: {e}")
             return False, str(e)

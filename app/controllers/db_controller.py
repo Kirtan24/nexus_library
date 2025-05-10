@@ -31,18 +31,7 @@ class DatabaseController:
 
         self.initialized = True
 
-    def     execute_query(self, query, params=None, fetch_results=False):
-        """
-        Execute a database query with optional parameters.
-
-        Args:
-            query (str): SQL query to execute.
-            params (tuple, optional): Parameters for the query.
-            fetch_results (bool): Whether to fetch and return results.
-
-        Returns:
-            list or int: Query results as list of dictionaries or number of affected rows.
-        """
+    def execute_query(self, query, params=None, fetch_results=False):
         conn, cursor = None, None
         try:
             conn = self.connection_pool.getconn()
@@ -67,7 +56,6 @@ class DatabaseController:
                 self.connection_pool.putconn(conn)
 
     def close(self):
-        """Close all connections in the pool."""
         if self.connection_pool:
             self.connection_pool.closeall()
             logging.info("All database connections closed.")

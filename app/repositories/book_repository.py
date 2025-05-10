@@ -1,9 +1,7 @@
 from app.controllers.db_controller import DatabaseController
 from app.services.observer_service import ObserverService
-from app.repositories.recommendation_repository import RecommendationRepository
 
 class BookRepository:
-    """Repository for managing library items in the database"""
     _instance = None
 
     def __new__(cls):
@@ -21,11 +19,21 @@ class BookRepository:
         self.initialized = True
 
     def add_item(self, library_item):
-        """
-        Add a library item to the database
-        """
         try:
-            # Insert into the main items table
+            check_query = """
+                SELECT item_id FROM items
+                WHERE title = %s AND author_id = %s AND item_type = %s
+            """
+            check_params = (
+                library_item['title'],
+                library_item['author_id'],
+                library_item['item_type']
+            )
+
+            existing = self.db_controller.execute_query(check_query, check_params, True)
+            if existing:
+                return False, "Item with same title and author already exists"
+
             query = """
                 INSERT INTO items (title, author_id, genre, publication_year,
                                availability_status, item_type)
@@ -50,7 +58,6 @@ class BookRepository:
 
             item_id = result[0]['item_id']
 
-            # Insert into the specific type table
             if library_item['item_type'] == 'PrintedBook':
                 self._add_printed_book_details(item_id, library_item)
             elif library_item['item_type'] == 'EBook':
@@ -118,11 +125,7 @@ class BookRepository:
         )
 
     def get_item(self, item_id):
-        """
-        Get a library item by ID with all its specific details
-        """
         try:
-            # Get the basic item info
             query = """
                 SELECT i.*, a.name as author_name
                 FROM items i
@@ -137,7 +140,6 @@ class BookRepository:
             item = result[0]
             item_type = item['item_type']
 
-            # Get the specific details
             if item_type == 'PrintedBook':
                 self._get_printed_book_details(item_id, item)
             elif item_type == 'EBook':
@@ -186,14 +188,11 @@ class BookRepository:
             item_dict.update(result[0])
 
     def update_item(self, item_id, item_type, **kwargs):
-        """Update a library item"""
         try:
-            # Get current availability status before update
             current_status_query = "SELECT availability_status FROM items WHERE item_id = %s;"
             current_status_result = self.db_controller.execute_query(current_status_query, (item_id,), True)
             current_status = current_status_result[0]['availability_status'] if current_status_result else None
 
-            # Update base item details
             base_fields = ['title', 'author_id', 'genre', 'publication_year', 'availability_status']
             update_parts = []
             params = []
@@ -216,7 +215,6 @@ class BookRepository:
                 if not result:
                     return False, "Item not found"
 
-            # Update type-specific details
             if item_type == 'PrintedBook':
                 self._update_printed_book(item_id, kwargs)
             elif item_type == 'EBook':
@@ -226,7 +224,6 @@ class BookRepository:
             elif item_type == 'AudioBook':
                 self._update_audiobook(item_id, kwargs)
 
-            # Check if availability status changed to 'Available'
             new_status = kwargs.get('availability_status')
             if (new_status and new_status != current_status and
                 new_status.lower() == 'available'):
@@ -272,9 +269,7 @@ class BookRepository:
             self.db_controller.execute_query(query, tuple(params), False)
 
     def delete_item(self, item_id):
-        """Delete a library item"""
         try:
-            # Get item type to know which specific table to delete from
             type_query = "SELECT item_type FROM items WHERE item_id = %s;"
             type_result = self.db_controller.execute_query(type_query, (item_id,), True)
 
@@ -283,7 +278,6 @@ class BookRepository:
 
             item_type = type_result[0]['item_type']
 
-            # Delete from the specific type table
             specific_table = None
             if item_type == 'PrintedBook':
                 specific_table = 'printed_books'
@@ -298,7 +292,6 @@ class BookRepository:
                 specific_delete = f"DELETE FROM {specific_table} WHERE item_id = %s;"
                 self.db_controller.execute_query(specific_delete, (item_id,), False)
 
-            # Delete from the main items table
             delete_query = "DELETE FROM items WHERE item_id = %s RETURNING item_id;"
             result = self.db_controller.execute_query(delete_query, (item_id,), True)
 
@@ -307,8 +300,7 @@ class BookRepository:
         except Exception as e:
             return False, str(e)
 
-    def search_items(self, title=None, author=None, genre=None, item_type=None):
-        """Search for library items with various filters"""
+    def search_items(self, title=None, author=None, genre=None, item_type=None, exclude_research_papers=False):
         try:
             query_parts = ["SELECT i.*, a.name as author_name FROM items i LEFT JOIN authors a ON i.author_id = a.author_id WHERE 1=1"]
             params = []
@@ -328,13 +320,14 @@ class BookRepository:
             if item_type:
                 query_parts.append("AND i.item_type = %s")
                 params.append(item_type)
+            elif exclude_research_papers:
+                query_parts.append("AND i.item_type != 'ResearchPaper'")
 
             query_parts.append("ORDER BY i.title ASC")
             query = " ".join(query_parts)
 
             results = self.db_controller.execute_query(query, tuple(params) if params else None, True)
 
-            # For each result, fetch the type-specific details
             for item in results:
                 item_id = item['item_id']
                 item_type = item['item_type']
@@ -343,8 +336,6 @@ class BookRepository:
                     self._get_printed_book_details(item_id, item)
                 elif item_type == 'EBook':
                     self._get_ebook_details(item_id, item)
-                elif item_type == 'ResearchPaper':
-                    self._get_research_paper_details(item_id, item)
                 elif item_type == 'AudioBook':
                     self._get_audiobook_details(item_id, item)
 
@@ -357,9 +348,7 @@ class BookRepository:
         return self.db_controller.execute_query(query, params, fetch_results=True)
 
     def update_item_status(self, item_id, status):
-        """Update a library item's availability status"""
         try:
-            # Get current status
             current_status_query = "SELECT availability_status FROM items WHERE item_id = %s;"
             current_status_result = self.db_controller.execute_query(current_status_query, (item_id,), True)
             current_status = current_status_result[0]['availability_status'] if current_status_result else None
@@ -375,7 +364,6 @@ class BookRepository:
             if not result:
                 return False, "Library item not found"
 
-            # If status changed to 'Available', notify observers
             if status.lower() == 'available' and current_status != status:
                 self.observer_service.notify(item_id)
 
@@ -384,8 +372,7 @@ class BookRepository:
         except Exception as e:
             return False, str(e)
 
-    def get_available_items(self, item_type=None):
-        """Get all available library items, optionally filtered by type"""
+    def get_available_items(self, item_type=None, exclude_research_papers=False):
         try:
             query_parts = [
                 "SELECT i.*, a.name as author_name",
@@ -394,19 +381,19 @@ class BookRepository:
                 "WHERE i.availability_status IN ('Available', 'Unavailable')"
             ]
 
-
             params = []
 
             if item_type:
                 query_parts.append("AND i.item_type = %s")
                 params.append(item_type)
+            elif exclude_research_papers:
+                query_parts.append("AND i.item_type != 'ResearchPaper'")
 
             query_parts.append("ORDER BY i.title ASC")
             query = " ".join(query_parts)
 
             results = self.db_controller.execute_query(query, tuple(params) if params else None, True)
 
-            # For each result, fetch the type-specific details
             for item in results:
                 item_id = item['item_id']
                 item_type = item['item_type']
@@ -415,8 +402,6 @@ class BookRepository:
                     self._get_printed_book_details(item_id, item)
                 elif item_type == 'EBook':
                     self._get_ebook_details(item_id, item)
-                elif item_type == 'ResearchPaper':
-                    self._get_research_paper_details(item_id, item)
                 elif item_type == 'AudioBook':
                     self._get_audiobook_details(item_id, item)
 
@@ -424,18 +409,3 @@ class BookRepository:
 
         except Exception as e:
             return []
-
-    def get_recommendations(self, user_id, limit=10):
-        """Get book recommendations for a user"""
-        rec_repo = RecommendationRepository()
-        return rec_repo.get_recommendations(user_id, limit)
-
-    def get_trending_books(self, limit=10):
-        """Get currently trending books"""
-        rec_repo = RecommendationRepository()
-        return rec_repo.get_trending_items(limit=limit)
-
-    def get_similar_books(self, book_id, limit=10):
-        """Get books similar to a given book"""
-        rec_repo = RecommendationRepository()
-        return rec_repo.get_similar_items(book_id)[:limit]

@@ -1,17 +1,27 @@
-from app.models import BorrowRecord
 from app.repositories.borrow_repository import BorrowRepository
 from app.repositories.book_repository import BookRepository
+from app.repositories.user_repository import UserRepository
+from app.services.borrow_decorator import FacultyBorrowDecorator
 from datetime import datetime, timedelta
-import logging
 
 class BorrowController:
-    def __init__(self):
+    def __init__(self, user_repository=None):
         self.borrow_repository = BorrowRepository()
         self.book_repository = BookRepository()
-        logging.info("Borrow controller initialized")
+        self.user_repository = UserRepository()
+
+    def get_controller_for_user(self, user_id):
+        """Get appropriate controller based on user type"""
+        if not self.user_repository:
+            return self
+
+        user = self.user_repository.get_user_by_id(user_id)
+        if user and user.get('user_type') == 'faculty':
+            return FacultyBorrowDecorator(self)
+        return self
 
     def create_borrow_record(self, user_id, book_id):
-        book_result = self.book_repository.get_book(book_id)
+        book_result = self.book_repository.get_item(book_id)
         if not book_result:
             return False, ["Book not found"]
 
@@ -34,39 +44,19 @@ class BorrowController:
 
         status_update, status_message = self.book_repository.update_book_status(book_id, "borrowed")
         if not status_update:
-            logging.error(f"Failed to update book status after borrowing: {status_message}")
+            print(f"Failed to update book status after borrowing: {status_message}")
 
-        logging.info(f"User {user_id} borrowed book {book_id}. Due: {due_date}")
         return True, f"Book borrowed successfully. Due date: {due_date.strftime('%Y-%m-%d')}"
 
     def update_book_availability(self, book_id, status):
         """Update the availability status of a book"""
         return self.book_repository.update_book_status(book_id, status)
 
-    def get_borrow_record(self, record_id):
-        result = self.borrow_repository.get_borrow_record(record_id)
-
-        if not result:
-            return None
-
-        borrow_record = BorrowRecord(
-            record_id=result['record_id'],
-            user_id=result['user_id'],
-            book_id=result['book_id'],
-            borrow_date=result['borrow_date'],
-            due_date=result['due_date'],
-            return_date=result['return_date'],
-            fine_amount=result['fine_amount']
-        )
-
-        return borrow_record
-
     def get_active_borrow_record(self, user_id, book_id):
         return self.borrow_repository.get_active_borrow_record(user_id, book_id)
 
     def return_book(self, user_id, book_id):
         borrow_record = self.borrow_repository.get_active_borrow_record(user_id, book_id)
-
         if not borrow_record:
             return False, ["No active borrow record found for this user and book"]
 
@@ -84,14 +74,11 @@ class BorrowController:
         if not success:
             return False, [message]
 
-        status_update, status_message = self.book_repository.update_book_status(book_id, "available")
-        if not status_update:
-            logging.error(f"Failed to update book status after return: {status_message}")
+        self.borrow_repository.update_book_availability(book_id, borrowed=False)
 
         if fine_amount > 0:
             return True, f"Book returned successfully. Fine for overdue: ${fine_amount:.2f}"
-        else:
-            return True, "Book returned successfully"
+        return True, "Book returned successfully"
 
     def calculate_fine(self, record_id):
         borrow_record = self.get_borrow_record(record_id)
@@ -146,5 +133,4 @@ class BorrowController:
         if not result:
             return False, ["Failed to extend due date"]
 
-        logging.info(f"Due date extended for record {record_id} to {new_due_date}")
         return True, f"Due date extended to {new_due_date.strftime('%Y-%m-%d')}"

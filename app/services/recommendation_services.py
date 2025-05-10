@@ -5,7 +5,6 @@ class RecommendationService:
         self.repo = RecommendationRepository()
 
     def generate_recommendations(self, user_id):
-        """Generate personalized recommendations"""
         recommendations = self.repo.get_recommendations(user_id)
 
         formatted = []
@@ -21,7 +20,6 @@ class RecommendationService:
         return formatted
 
     def _get_recommendation_reason(self, item, user_id):
-        """Generate a human-readable reason for the recommendation"""
         history = self.repo.get_user_borrow_history(user_id)
 
         genre_count = sum(1 for h in history if h['genre'] == item['genre'])

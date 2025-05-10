@@ -2,7 +2,6 @@ import customtkinter as ctk
 from tkinter import messagebox
 from ui.components.pages.main_layout import MainLayout
 from app.services.recommendation_services import RecommendationService
-from ui.components.pages.book_details import BookDetailView
 
 BACKGROUND_COLOR = "#f8f9fa"
 TEXT_COLOR = "#000000"
@@ -18,7 +17,6 @@ class HomePage(MainLayout):
         super().__init__(master, user)
         self.master = master
         self.user = user
-        self.root.title("Nexus Library - Home")
         self.recommendation_service = RecommendationService()
         self.create_content()
 
@@ -30,20 +28,17 @@ class HomePage(MainLayout):
         self.scroll_container = ctk.CTkFrame(self.content_container, fg_color=BACKGROUND_COLOR)
         self.scroll_container.pack(fill=ctk.BOTH, expand=True)
 
-        # Create a frame to hold canvas and scrollbar
         self.canvas_frame = ctk.CTkFrame(self.scroll_container, fg_color=BACKGROUND_COLOR)
         self.canvas_frame.pack(fill=ctk.BOTH, expand=True)
 
-        # Create canvas with proper configuration
         self.canvas = ctk.CTkCanvas(
             self.canvas_frame,
             bg=BACKGROUND_COLOR,
             highlightthickness=0,
-            yscrollincrement=10  # Smoother scrolling
+            yscrollincrement=10
         )
         self.canvas.pack(side=ctk.LEFT, fill=ctk.BOTH, expand=True)
 
-        # Create scrollbar
         self.scrollbar = ctk.CTkScrollbar(
             self.canvas_frame,
             orientation="vertical",
@@ -51,10 +46,8 @@ class HomePage(MainLayout):
         )
         self.scrollbar.pack(side=ctk.RIGHT, fill=ctk.Y)
 
-        # Configure canvas
         self.canvas.configure(yscrollcommand=self.scrollbar.set)
 
-        # Create content frame inside canvas
         self.content_frame = ctk.CTkFrame(self.canvas, fg_color=BACKGROUND_COLOR)
         self.canvas_window = self.canvas.create_window(
             (0, 0),
@@ -63,47 +56,35 @@ class HomePage(MainLayout):
             width=self.canvas.winfo_width()
         )
 
-        # Bind configuration events
         self.canvas.bind('<Configure>', self.on_canvas_configure)
         self.content_frame.bind('<Configure>', self.on_frame_configure)
 
-        # Bind mousewheel events properly
         self.bind_mousewheel()
 
-        # Create page sections
         self.create_welcome_section()
         self.create_recommendation_section()
         self.create_trending_section()
 
     def on_canvas_configure(self, event):
-        """Handle canvas resize"""
         canvas_width = event.width
         self.canvas.itemconfig(self.canvas_window, width=canvas_width)
         self.canvas.configure(scrollregion=self.canvas.bbox("all"))
 
     def on_frame_configure(self, event):
-        """Update scrollregion when frame size changes"""
         self.canvas.configure(scrollregion=self.canvas.bbox("all"))
 
     def bind_mousewheel(self):
-        """Bind mousewheel events for scrolling"""
-        # Windows and Mac
         self.canvas.bind_all("<MouseWheel>", self._on_mousewheel)
 
-        # Linux (button 4 and 5)
         self.canvas.bind_all("<Button-4>", self._on_mousewheel_linux)
         self.canvas.bind_all("<Button-5>", self._on_mousewheel_linux)
 
     def _on_mousewheel(self, event):
-        """Handle mousewheel scrolling for Windows/Mac"""
-        # Check if the mouse is over the canvas
         if self.canvas.winfo_containing(event.x_root, event.y_root) == self.canvas:
             self.canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")
-            return "break"  # Prevent event propagation
+            return "break"
 
     def _on_mousewheel_linux(self, event):
-        """Handle mousewheel scrolling for Linux"""
-        # Check if the mouse is over the canvas
         if self.canvas.winfo_containing(event.x_root, event.y_root) == self.canvas:
             if event.num == 4:
                 self.canvas.yview_scroll(-1, "units")
@@ -135,14 +116,12 @@ class HomePage(MainLayout):
         hero_subtitle.pack(pady=10)
 
     def create_recommendation_section(self):
-        """Create personalized recommendations section"""
         if not self.user:
-            return  # Skip if no user is logged in
+            return
 
         section_frame = ctk.CTkFrame(self.content_frame, fg_color=BACKGROUND_COLOR)
         section_frame.pack(fill=ctk.X, pady=(0, 20), padx=20)
 
-        # Section header
         header_frame = ctk.CTkFrame(section_frame, fg_color=BACKGROUND_COLOR)
         header_frame.pack(fill=ctk.X, pady=(0, 10))
 
@@ -163,7 +142,6 @@ class HomePage(MainLayout):
         )
         refresh_button.pack(side=ctk.RIGHT)
 
-        # Recommendations container
         self.recommendations_container = ctk.CTkScrollableFrame(
             section_frame,
             orientation="horizontal",
@@ -172,15 +150,12 @@ class HomePage(MainLayout):
         )
         self.recommendations_container.pack(fill=ctk.X)
 
-        # Load initial recommendations
         self.load_recommendations()
 
     def create_trending_section(self):
-        """Create trending books section"""
         section_frame = ctk.CTkFrame(self.content_frame, fg_color=BACKGROUND_COLOR)
         section_frame.pack(fill=ctk.X, pady=(0, 20), padx=20)
 
-        # Section header
         ctk.CTkLabel(
             section_frame,
             text="Trending Now",
@@ -188,7 +163,6 @@ class HomePage(MainLayout):
             text_color=TEXT_COLOR
         ).pack(anchor="w", pady=(0, 10))
 
-        # Trending container
         self.trending_container = ctk.CTkScrollableFrame(
             section_frame,
             orientation="horizontal",
@@ -197,12 +171,9 @@ class HomePage(MainLayout):
         )
         self.trending_container.pack(fill=ctk.X)
 
-        # Load trending books
         self.load_trending()
 
     def load_recommendations(self):
-        """Load personalized recommendations"""
-        # Clear existing recommendations
         for widget in self.recommendations_container.winfo_children():
             widget.destroy()
 
@@ -218,12 +189,10 @@ class HomePage(MainLayout):
             empty_label.pack(pady=20)
             return
 
-        for rec in recommendations[:5]:  # Show max 5 recommendations
+        for rec in recommendations[:5]:
             self.create_recommendation_card(rec)
 
     def load_trending(self):
-        """Load trending books"""
-        # Clear existing trending books
         for widget in self.trending_container.winfo_children():
             widget.destroy()
 
@@ -239,11 +208,10 @@ class HomePage(MainLayout):
             empty_label.pack(pady=20)
             return
 
-        for book in trending_books[:5]:  # Show max 5 trending books
+        for book in trending_books[:5]:
             self.create_trending_card(book)
 
     def create_recommendation_card(self, recommendation):
-        """Create a recommendation card"""
         card = ctk.CTkFrame(
             self.recommendations_container,
             width=180,
@@ -253,7 +221,6 @@ class HomePage(MainLayout):
         )
         card.pack(side=ctk.LEFT, padx=10, pady=5)
 
-        # Book title (truncated if too long)
         title = (recommendation['title'][:20] + '...') if len(recommendation['title']) > 20 else recommendation['title']
         ctk.CTkLabel(
             card,
@@ -263,7 +230,6 @@ class HomePage(MainLayout):
             wraplength=160
         ).pack(pady=(10, 5), padx=10)
 
-        # Author and genre
         ctk.CTkLabel(
             card,
             text=f"by {recommendation['author']}",
@@ -278,7 +244,6 @@ class HomePage(MainLayout):
             font=("Arial", 11)
         ).pack(pady=2, padx=10)
 
-        # Recommendation reason
         ctk.CTkLabel(
             card,
             text=recommendation['reason'],
@@ -287,7 +252,6 @@ class HomePage(MainLayout):
             wraplength=160
         ).pack(pady=5, padx=10)
 
-        # View button
         ctk.CTkButton(
             card,
             text="View",
@@ -298,7 +262,6 @@ class HomePage(MainLayout):
         ).pack(pady=(5, 10))
 
     def create_trending_card(self, book):
-        """Create a trending book card"""
         card = ctk.CTkFrame(
             self.trending_container,
             width=180,
@@ -308,7 +271,6 @@ class HomePage(MainLayout):
         )
         card.pack(side=ctk.LEFT, padx=10, pady=5)
 
-        # Book title (truncated if too long)
         title = (book['title'][:20] + '...') if len(book['title']) > 20 else book['title']
         ctk.CTkLabel(
             card,
@@ -318,7 +280,6 @@ class HomePage(MainLayout):
             wraplength=160
         ).pack(pady=(10, 5), padx=10)
 
-        # Author and genre
         ctk.CTkLabel(
             card,
             text=f"by {book['author_name']}",
@@ -333,7 +294,6 @@ class HomePage(MainLayout):
             font=("Arial", 11)
         ).pack(pady=2, padx=10)
 
-        # Popularity indicator
         ctk.CTkLabel(
             card,
             text=f"🔥 {book['borrow_count']} recent borrows",
@@ -341,7 +301,6 @@ class HomePage(MainLayout):
             font=("Arial", 10)
         ).pack(pady=5, padx=10)
 
-        # View button
         ctk.CTkButton(
             card,
             text="View",
@@ -352,9 +311,7 @@ class HomePage(MainLayout):
         ).pack(pady=(5, 10))
 
     def refresh_recommendations(self):
-        """Refresh the recommendations section"""
         self.load_recommendations()
 
     def view_book(self, item_id):
-        """Handle book view action"""
         self.master.show_item_detail_page(item_id)

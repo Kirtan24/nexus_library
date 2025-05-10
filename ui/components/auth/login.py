@@ -50,7 +50,6 @@ class LoginPage(ctk.CTkFrame):
         self.username_entry = self.create_entry(container, "Username", width=300)
         self.password_entry = self.create_entry(container, "Password", show="*", width=300)
 
-         # Login and Back Buttons in One Row
         button_frame = ctk.CTkFrame(container, fg_color=BACKGROUND_COLOR)
         button_frame.pack(pady=10)
 

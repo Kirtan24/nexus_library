@@ -2,10 +2,6 @@ from app.controllers.user_controller import UserController
 import logging
 
 class AuthenticationService:
-    """
-    Service class that handles user authentication logic.
-    Implements Facade pattern to simplify authentication interactions.
-    """
     _instance = None
 
     def __new__(cls):
@@ -25,19 +21,11 @@ class AuthenticationService:
         logging.info("Authentication service initialized")
 
     def register(self, username, email, password, confirm_password, name, phone_number, role):
-        """
-        Register a new user
-        Returns: (success, message)
-        """
         return self.user_controller.register_user(
             username, email, password, confirm_password, name, phone_number, role
         )
 
     def login(self, username, password):
-        """
-        Login a user
-        Returns: (success, message, user_data)
-        """
         # success, message, user_data = self.user_controller.login(username, password)
         # success = True
         # message = "Login successful"
@@ -56,23 +44,17 @@ class AuthenticationService:
         self.current_user = None
 
     def get_current_user(self):
-        """Get the currently logged in user"""
         return self.current_user
 
     def is_authenticated(self):
-        """Check if a user is currently authenticated"""
         return self.current_user is not None
 
     def has_role(self, role_name):
-        """Check if the current user has a specific role"""
         if not self.current_user:
             return False
         return self.current_user.get('role') == role_name
 
     def check_permission(self, permission_name):
-        """
-        Check if the current user has a specific permission.
-        """
         if not self.current_user:
             return False
 

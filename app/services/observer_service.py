@@ -5,7 +5,6 @@ class ObserverService:
         self.db = DatabaseController()
 
     def add(self, user_id: int, item_id: int):
-        """Register a user to be notified when an item becomes available"""
         try:
             query = """
                 INSERT INTO item_observers (user_id, item_id, status)
@@ -24,7 +23,6 @@ class ObserverService:
             return None
 
     def remove(self, user_id: int, item_id: int):
-        """Completely remove a user from the notification list for an item"""
         try:
             query = """
                 DELETE FROM item_observers
@@ -38,7 +36,6 @@ class ObserverService:
             return False
 
     def notify(self, item_id: int):
-        """Notify all users who are waiting for this item"""
         try:
             query = """
                 SELECT o.observer_id, o.user_id, i.title, u.email, u.name

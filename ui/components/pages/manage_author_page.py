@@ -20,59 +20,43 @@ TABLE_EVEN_COLOR = "#ffffff"
 TABLE_HEADER_COLOR = "#e0e0e0"
 
 class AuthorManagementPage(ctk.CTkFrame):
-    """
-    Page for managing authors (add, edit, delete, search)
-    """
     def __init__(self, master):
         super().__init__(master)
         self.master = master
         self.author_controller = AuthorController()
 
-        # Configure the frame
         self.pack(fill=ctk.BOTH, expand=True)
         self.configure(fg_color=BACKGROUND_COLOR)
 
-        # Initialize variables
         self.current_author_id = None
         self.is_edit_mode = False
         self.search_term = ctk.StringVar(value="")
         self.search_nationality = ctk.StringVar(value="")
 
-        # Create UI components
         self.create_ui()
 
-        # Load initial data
         self.refresh_authors()
 
     def create_ui(self):
-        """Create the main UI layout"""
-        # Create top frame with title and back button
         self.create_header_frame()
 
-        # Create main content with left panel (form) and right panel (table)
         content_frame = ctk.CTkFrame(self, fg_color=BACKGROUND_COLOR)
         content_frame.pack(fill=ctk.BOTH, expand=True, padx=20, pady=10)
 
-        # Left Panel - Author Form
         self.left_panel = ctk.CTkFrame(content_frame, fg_color=OFFWHITE_COLOR, corner_radius=10)
         self.left_panel.pack(side=ctk.LEFT, fill=ctk.BOTH, expand=True, padx=(0, 10))
 
-        # Right Panel - Author Table and Search
         self.right_panel = ctk.CTkFrame(content_frame, fg_color=OFFWHITE_COLOR, corner_radius=10)
         self.right_panel.pack(side=ctk.RIGHT, fill=ctk.BOTH, expand=True, padx=(10, 0))
 
-        # Create form
         self.create_author_form()
 
-        # Create table
         self.create_author_table()
 
     def create_header_frame(self):
-        """Create header with title and back button"""
         header_frame = ctk.CTkFrame(self, fg_color=BACKGROUND_COLOR, height=60)
         header_frame.pack(fill=ctk.X, pady=(0, 10))
 
-        # Back button
         back_button = ctk.CTkButton(
             header_frame,
             text="←",
@@ -86,7 +70,6 @@ class AuthorManagementPage(ctk.CTkFrame):
         )
         back_button.pack(side=ctk.LEFT, padx=20, pady=10)
 
-        # Page title
         title_label = ctk.CTkLabel(
             header_frame,
             text="Author Management",
@@ -96,11 +79,9 @@ class AuthorManagementPage(ctk.CTkFrame):
         title_label.pack(side=ctk.LEFT, padx=20)
 
     def create_author_form(self):
-        """Create form for adding/editing authors"""
         form_frame = ctk.CTkFrame(self.left_panel, fg_color=OFFWHITE_COLOR)
         form_frame.pack(fill=ctk.BOTH, expand=True, padx=20, pady=20)
 
-        # Title section
         form_title = ctk.CTkLabel(
             form_frame,
             text="Add New Author",
@@ -110,35 +91,29 @@ class AuthorManagementPage(ctk.CTkFrame):
         form_title.pack(anchor="w", pady=(0, 20))
         self.form_title_label = form_title
 
-        # Form fields container with scrolling if needed
         self.form_container = ctk.CTkScrollableFrame(form_frame, fg_color=OFFWHITE_COLOR, width=400, height=400)
         self.form_container.pack(fill=ctk.BOTH, expand=True, pady=(10, 20))
 
-        # Create form fields
         self.form_fields = {}
 
-        # Name field
         self.add_form_field({
             "name": "name",
             "label": "Name",
             "required": True
         })
 
-        # Nationality field
         self.add_form_field({
             "name": "nationality",
             "label": "Nationality",
             "required": False
         })
 
-        # Genres field
         self.add_form_field({
             "name": "genres",
             "label": "Genres",
             "required": False,
         })
 
-        # Bio field
         self.add_form_field({
             "name": "bio",
             "label": "Biography",
@@ -146,7 +121,6 @@ class AuthorManagementPage(ctk.CTkFrame):
             "multiline": True
         })
 
-        # Action buttons
         button_frame = ctk.CTkFrame(form_frame, fg_color=OFFWHITE_COLOR)
         button_frame.pack(fill=ctk.X, pady=(10, 0))
 
@@ -177,11 +151,9 @@ class AuthorManagementPage(ctk.CTkFrame):
         self.clear_button.pack(side=ctk.LEFT)
 
     def add_form_field(self, field):
-        """Add a single form field to the form container"""
         field_frame = ctk.CTkFrame(self.form_container, fg_color=OFFWHITE_COLOR)
         field_frame.pack(fill=ctk.X, pady=(0, 15))
 
-        # Label - Add asterisk if required
         label_text = f"{field['label']}{'*' if field.get('required', False) else ''}"
         label = ctk.CTkLabel(
             field_frame,
@@ -193,7 +165,6 @@ class AuthorManagementPage(ctk.CTkFrame):
         )
         label.pack(side=ctk.LEFT)
 
-        # Field (entry or textbox)
         if field.get("multiline", False):
             input_field = ctk.CTkTextbox(
                 field_frame,
@@ -216,7 +187,6 @@ class AuthorManagementPage(ctk.CTkFrame):
 
         input_field.pack(side=ctk.LEFT, padx=(10, 0))
 
-        # Add help text if present
         if field.get("help"):
             help_frame = ctk.CTkFrame(self.form_container, fg_color=OFFWHITE_COLOR)
             help_frame.pack(fill=ctk.X, pady=(0, 15))
@@ -230,12 +200,9 @@ class AuthorManagementPage(ctk.CTkFrame):
             )
             help_label.pack(side=ctk.RIGHT, padx=(0, 10))
 
-        # Store reference to input field
         self.form_fields[field["name"]] = input_field
 
     def create_author_table(self):
-        """Create the table for displaying authors"""
-        # Search/filter section
         search_frame = ctk.CTkFrame(self.right_panel, fg_color=OFFWHITE_COLOR)
         search_frame.pack(fill=ctk.X, padx=20, pady=20)
 
@@ -297,11 +264,9 @@ class AuthorManagementPage(ctk.CTkFrame):
         )
         refresh_button.pack(side=ctk.LEFT, padx=(10, 0))
 
-        # Create table frame
         table_frame = ctk.CTkFrame(self.right_panel, fg_color=OFFWHITE_COLOR)
         table_frame.pack(fill=ctk.BOTH, expand=True, padx=20, pady=(0, 20))
 
-        # Create treeview for authors table
         self.table = ttk.Treeview(
             table_frame,
             columns=("ID", "Name", "Nationality", "Genres"),
@@ -310,7 +275,6 @@ class AuthorManagementPage(ctk.CTkFrame):
             height=20
         )
 
-        # Configure column widths and headings
         self.table.heading("ID", text="ID")
         self.table.heading("Name", text="Name")
         self.table.heading("Nationality", text="Nationality")
@@ -321,15 +285,12 @@ class AuthorManagementPage(ctk.CTkFrame):
         self.table.column("Nationality", width=150, anchor="w")
         self.table.column("Genres", width=200, anchor="w")
 
-        # Add scrollbar
         scrollbar = ttk.Scrollbar(table_frame, orient="vertical", command=self.table.yview)
         self.table.configure(yscrollcommand=scrollbar.set)
 
-        # Pack table and scrollbar
         self.table.pack(side=ctk.LEFT, fill=ctk.BOTH, expand=True)
         scrollbar.pack(side=ctk.RIGHT, fill=ctk.Y)
 
-        # Create bottom buttons for author actions
         actions_frame = ctk.CTkFrame(self.right_panel, fg_color=OFFWHITE_COLOR)
         actions_frame.pack(fill=ctk.X, padx=20, pady=(0, 20))
 
@@ -367,21 +328,18 @@ class AuthorManagementPage(ctk.CTkFrame):
         view_button.pack(side=ctk.LEFT)
 
     def clear_form(self):
-        """Clear all form fields"""
         for name, field in self.form_fields.items():
             if isinstance(field, ctk.CTkTextbox):
                 field.delete("1.0", ctk.END)
             else:
                 field.delete(0, ctk.END)
 
-        # Reset edit mode
         self.is_edit_mode = False
         self.current_author_id = None
         self.form_title_label.configure(text="Add New Author")
         self.save_button.configure(text="Add Author")
 
     def get_form_values(self):
-        """Extract values from all form fields"""
         values = {}
 
         for name, field in self.form_fields.items():
@@ -393,16 +351,14 @@ class AuthorManagementPage(ctk.CTkFrame):
             except tk.TclError:
                 values[name] = None
 
-        # Validate required fields
         required_fields = ["name"]
         for field in required_fields:
             if not values.get(field):
                 messagebox.showerror("Validation Error", f"{field.capitalize()} is required.")
                 return None
 
-        # Process genres - convert to list format for database
         if values.get("genres"):
-            # Split by comma and strip whitespace
+
             genres_list = [genre.strip() for genre in values["genres"].split(",") if genre.strip()]
             values["genres"] = genres_list
         else:
@@ -411,21 +367,20 @@ class AuthorManagementPage(ctk.CTkFrame):
         return values
 
     def save_author(self):
-        """Save or update an author based on edit mode"""
         values = self.get_form_values()
         if not values:
             return
 
         try:
             if self.is_edit_mode and self.current_author_id:
-                # Update existing author
+
                 success, message = self.author_controller.update_author(
                     self.current_author_id,
                     **values
                 )
                 action = "updated"
             else:
-                # Add new author
+
                 success, message = self.author_controller.add_author(
                     values["name"],
                     values.get("bio"),
@@ -448,100 +403,86 @@ class AuthorManagementPage(ctk.CTkFrame):
             messagebox.showerror("Error", f"An error occurred: {str(e)}")
 
     def refresh_authors(self):
-        """Refresh the authors table"""
-        # Clear existing items
         for item in self.table.get_children():
             self.table.delete(item)
 
-        # Get all authors
         authors = self.author_controller.get_all_authors()
 
-        # Add authors to table
         for i, author in enumerate(authors):
             author_id = author.get("author_id", "")
             name = author.get("name", "")
             nationality = author.get("nationality", "")
 
-            # Format genres for display
+
             genres = author.get("genres", [])
             if genres and isinstance(genres, list):
                 genres_display = ", ".join(genres)
             elif genres and isinstance(genres, str):
-                # Handle case where genres might be returned as a string from DB
+
                 genres_display = genres
             else:
                 genres_display = ""
 
-            # Insert with alternating row colors
+
             tag = "even" if i % 2 == 0 else "odd"
             self.table.insert("", "end", values=(author_id, name, nationality, genres_display), tags=(tag,))
 
-        # Configure alternating row colors
         self.table.tag_configure("odd", background=TABLE_ODD_COLOR)
         self.table.tag_configure("even", background=TABLE_EVEN_COLOR)
 
     def search_authors(self):
-        """Search authors based on filters"""
         name_text = self.search_term.get().strip()
         nationality_text = self.search_nationality.get().strip()
 
-        # Clear existing items
         for item in self.table.get_children():
             self.table.delete(item)
 
-        # Apply search filters
         authors = self.author_controller.search_authors(
             name=name_text if name_text else None,
             nationality=nationality_text if nationality_text else None
         )
 
-        # Add authors to table
         for i, author in enumerate(authors):
             author_id = author.get("author_id", "")
             name = author.get("name", "")
             nationality = author.get("nationality", "")
 
-            # Format genres for display
+
             genres = author.get("genres", [])
             if genres and isinstance(genres, list):
                 genres_display = ", ".join(genres)
             elif genres and isinstance(genres, str):
-                # Handle case where genres might be returned as a string
+
                 genres_display = genres
             else:
                 genres_display = ""
 
-            # Insert with alternating row colors
+
             tag = "even" if i % 2 == 0 else "odd"
             self.table.insert("", "end", values=(author_id, name, nationality, genres_display), tags=(tag,))
 
     def edit_selected_author(self):
-        """Load the selected author into the form for editing"""
         selected = self.table.selection()
         if not selected:
             messagebox.showinfo("Info", "Please select an author to edit.")
             return
 
-        # Get author ID from the selected row
         author_id = self.table.item(selected[0])["values"][0]
 
-        # Fetch author details
         author = self.author_controller.get_author(author_id)
         if not author:
             messagebox.showerror("Error", "Failed to load author details.")
             return
 
-        # Set form to edit mode
         self.is_edit_mode = True
         self.current_author_id = author_id
         self.form_title_label.configure(text=f"Edit Author #{author_id}")
         self.save_button.configure(text="Update Author")
 
-        # Populate form fields with author data
         for name, field in self.form_fields.items():
             value = author.get(name, "")
 
-            # Handle genres special case (convert list to comma-separated string)
+
             if name == "genres" and value and isinstance(value, list):
                 value = ", ".join(value)
 
@@ -554,21 +495,17 @@ class AuthorManagementPage(ctk.CTkFrame):
                     field.insert(0, str(value))
 
     def delete_selected_author(self):
-        """Delete the selected author"""
         selected = self.table.selection()
         if not selected:
             messagebox.showinfo("Info", "Please select an author to delete.")
             return
 
-        # Get author ID from the selected row
         author_id = self.table.item(selected[0])["values"][0]
         name = self.table.item(selected[0])["values"][1]
 
-        # Confirm deletion
         if not messagebox.askyesno("Confirm Delete", f"Are you sure you want to delete author '{name}'?"):
             return
 
-        # Delete the author
         success, message = self.author_controller.delete_author(author_id)
 
         if success:
@@ -581,7 +518,6 @@ class AuthorManagementPage(ctk.CTkFrame):
                 messagebox.showerror("Error", f"Failed to delete author: {message}")
 
     def view_author_details(self):
-        """Show detailed view of the selected item in a simple Tkinter window"""
         selected = self.table.selection()
         if not selected:
             messagebox.showinfo("Info", "Please select an item to view.")
@@ -594,14 +530,12 @@ class AuthorManagementPage(ctk.CTkFrame):
             messagebox.showerror("Error", "Failed to load author` details.")
             return
 
-        # Create a new top-level window
         details_window = tk.Toplevel(self)
         details_window.title(f"Author Details: {author.get('name', '')}")
         details_window.geometry("700x400")
         details_window.transient(self)
         details_window.grab_set()
 
-        # Create a scrollable canvas + frame
         canvas = tk.Canvas(details_window, borderwidth=0)
         frame = tk.Frame(canvas)
         vsb = tk.Scrollbar(details_window, orient="vertical", command=canvas.yview)
@@ -616,7 +550,6 @@ class AuthorManagementPage(ctk.CTkFrame):
 
         frame.bind("<Configure>", on_frame_configure)
 
-        # Title
         tk.Label(frame, text=author.get('name', 'Unknown'), font=("Arial", 16, "bold")).pack(pady=(10, 10))
 
         def add_info(label, value, multiline=False):
@@ -629,7 +562,6 @@ class AuthorManagementPage(ctk.CTkFrame):
             else:
                 tk.Label(frame, text=value, anchor="w").pack(fill='x', padx=10, pady=(0, 10))
 
-        # Basic info
         add_info("ID", author.get('author_id', ''))
         add_info("Name", author.get('name', ''))
         add_info("Nationality", author.get('nationality', 'N/A'))
@@ -637,8 +569,6 @@ class AuthorManagementPage(ctk.CTkFrame):
         add_info("Biography", author.get('bio', 'N/A'), True)
 
     def add_detail_section(self, parent, title, fields):
-        """Add a section of details to the details view"""
-        # Section title
         ctk.CTkLabel(
             parent,
             text=title,
@@ -646,11 +576,9 @@ class AuthorManagementPage(ctk.CTkFrame):
             text_color=TEXT_COLOR
         ).pack(anchor="w", pady=(20, 10))
 
-        # Section divider
         divider = ctk.CTkFrame(parent, height=2, fg_color="#dddddd")
         divider.pack(fill=ctk.X, pady=(0, 10))
 
-        # Fields
         for field in fields:
             field_frame = ctk.CTkFrame(parent, fg_color="transparent")
             field_frame.pack(fill=ctk.X, pady=(0, 10))
@@ -686,6 +614,5 @@ class AuthorManagementPage(ctk.CTkFrame):
                 ).pack(side=ctk.LEFT, fill=ctk.X, expand=True)
 
     def go_back(self):
-        """Navigate back to the previous page"""
         self.destroy()
         self.master.show_home_page()

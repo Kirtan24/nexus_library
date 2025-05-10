@@ -7,14 +7,12 @@ class AuthorController:
         logging.info("Author controller initialized")
 
     def validate_author_data(self, name):
-        """Validate author data before adding or updating"""
         errors = []
         if not name or len(name) < 2 or len(name) > 100:
             errors.append("Author name must be between 2 and 100 characters")
         return errors
 
     def add_author(self, name, bio=None, nationality=None, genres=None):
-        """Add a new author with validation"""
         validation_errors = self.validate_author_data(name)
 
         if validation_errors:
@@ -32,12 +30,10 @@ class AuthorController:
             return False, [result]
 
     def get_author(self, author_id):
-        """Get author by ID and return as a dictionary"""
         result = self.author_repository.get_author(author_id)
         return result if result else None
 
     def update_author(self, author_id, name=None, bio=None, nationality=None, genres=None):
-        """Update author with validation"""
         if name:
             current_author = self.get_author(author_id)
             if not current_author:
@@ -59,7 +55,6 @@ class AuthorController:
             return False, [message]
 
     def delete_author(self, author_id):
-        """Delete an author"""
         success, message = self.author_repository.delete_author(author_id)
 
         if success:
@@ -70,9 +65,7 @@ class AuthorController:
             return False, [message]
 
     def search_authors(self, name=None, nationality=None):
-        """Search authors and return list of dictionaries"""
         return self.author_repository.search_authors(name, nationality)
 
     def get_all_authors(self):
-        """Get all authors as list of dictionaries"""
         return self.author_repository.get_all_authors()

@@ -2,10 +2,6 @@
 from app.services.book_services import BookService, LibraryItemBuilder
 
 class LibraryController:
-    """
-    Main controller for library operations.
-    Implements Singleton pattern.
-    """
     _instance = None
 
     def __new__(cls):
@@ -22,9 +18,6 @@ class LibraryController:
         self.initialized = True
 
     def add_item(self, item_type, title, author_id, **kwargs):
-        """
-        Add item using Builder pattern for complex construction
-        """
         builder = LibraryItemBuilder(item_type, title, author_id)
 
         # Common attributes
@@ -65,11 +58,9 @@ class LibraryController:
         return builder.add_to_library()
 
     def get_item(self, book_id):
-        """Get item details by ID"""
         return self.book_service.get_item(book_id)
 
     def search_items(self, title=None, author=None, genre=None, item_type=None):
-        """Search items with filters"""
         return self.book_service.search_items(
             title=title,
             author=author,
@@ -78,17 +69,13 @@ class LibraryController:
         )
 
     def update_item(self, book_id, item_type, **kwargs):
-        """Update item details"""
         return self.book_service.update_item(book_id, item_type, **kwargs)
 
     def delete_item(self, book_id):
-        """Remove item from library"""
         return self.book_service.delete_item(book_id)
 
     def update_status(self, book_id, status):
-        """Update availability status"""
         return self.book_service.update_item_status(book_id, status)
 
     def get_available_items(self, item_type=None):
-        """Get all available items (optionally filtered by type)"""
         return self.book_service.get_available_items(item_type)

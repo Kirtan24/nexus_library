@@ -151,7 +151,6 @@ class BookDetailView(ctk.CTkFrame):
                 anchor="e"
             ).grid(row=start_row+i, column=0, padx=5, pady=5, sticky="e")
 
-            # Use a textbox for longer descriptions
             if label == "Description":
                 textbox = ctk.CTkTextbox(
                     self.details_frame,
@@ -238,49 +237,48 @@ class BookDetailView(ctk.CTkFrame):
 
     def configure_action_button(self, book):
         if book['item_type'] == 'PrintedBook':
-            # Check if user has an active borrow record for this book
             active_borrow = self.borrow_repo.get_active_borrow_record(self.user_id, self.item_id)
 
             if active_borrow:
                 self.action_button.configure(
                     text="Return Book",
                     state="normal",
-                    fg_color="#D35B58",  # Red color for return action
+                    fg_color="#D35B58",
                     command=self.return_book
                 )
             elif book.get('available_copies', 0) > 0:
                 self.action_button.configure(
                     text="Borrow Book",
                     state="normal",
-                    fg_color="#2E8B57",  # Green color for borrow
+                    fg_color="#2E8B57",
                     command=self.borrow_book
                 )
             else:
                 self.action_button.configure(
                     text="Notify When Available",
                     state="normal",
-                    fg_color="#4682B4",  # Blue color for notify
+                    fg_color="#4682B4",
                     command=self.register_for_notification
                 )
         elif book['item_type'] == 'EBook':
             self.action_button.configure(
                 text="Download EBook",
                 state="normal",
-                fg_color="#4169E1",  # Royal blue for download
+                fg_color="#4169E1",
                 command=self.download_ebook
             )
         elif book['item_type'] == 'AudioBook':
             self.action_button.configure(
                 text="Listen to Sample",
                 state="normal",
-                fg_color="#9370DB",  # Medium purple for audio
+                fg_color="#9370DB",
                 command=self.play_audio_sample
             )
         else:
             self.action_button.configure(
                 text="View Details",
                 state="normal",
-                fg_color="#708090",  # Slate gray for view
+                fg_color="#708090",
                 command=self.view_details
             )
 
@@ -344,58 +342,6 @@ class BookDetailView(ctk.CTkFrame):
                 messagebox.showerror("Error", result)
         except Exception as e:
             messagebox.showerror("Error", f"Failed to borrow book: {str(e)}")
-
-    # def return_book(self):
-    #     try:
-    #         # Get the active borrow record
-    #         borrow_record = self.borrow_repo.get_active_borrow_record(self.user_id, self.item_id)
-    #         if not borrow_record:
-    #             messagebox.showerror("Error", "No active borrow record found")
-    #             return
-
-    #         # Calculate fine if overdue
-    #         return_date = datetime.now().date()
-    #         due_date = borrow_record['due_date']
-    #         fine_amount = 0.0
-
-    #         if return_date > due_date:
-    #             days_overdue = (return_date - due_date).days
-    #             fine_amount = days_overdue * 5.0
-    #             messagebox.showwarning(
-    #                 "Overdue Book",
-    #                 f"This book is {days_overdue} days overdue. A fine of ${fine_amount:.2f} will be charged."
-    #             )
-
-    #         success, result = self.borrow_repo.close_borrow_record(
-    #             borrow_record['record_id'],
-    #             return_date,
-    #             fine_amount
-    #         )
-
-    #         if success:
-    #             current_copies = self.book_repo.get_item(self.item_id).get('available_copies', 0)
-    #             self.book_repo.update_item(
-    #                 self.item_id,
-    #                 'PrintedBook',
-    #                 available_copies=current_copies + 1,
-    #                 availability_status='Available' if current_copies + 1 > 0 else 'Checked Out'
-    #             )
-
-    #             if fine_amount > 0:
-    #                 self.borrow_repo.create_fine(
-    #                     self.user_id,
-    #                     borrow_record['record_id'],
-    #                     fine_amount
-    #                 )
-
-    #             messagebox.showinfo("Success", "Book returned successfully")
-    #             self.load_book_details()  # Refresh the view
-
-
-    #         else:
-    #             messagebox.showerror("Error", result)
-    #     except Exception as e:
-    #         messagebox.showerror("Error", f"Failed to return book: {str(e)}")
 
     def return_book(self):
         try:

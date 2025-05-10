@@ -63,28 +63,22 @@ class MainLayout(ctk.CTkFrame):
         for widget in self.nav_frame.winfo_children():
             widget.destroy()
 
-        self.active_menu = None  # Track currently open dropdown
+        self.active_menu = None
 
         if self.auth_service.is_authenticated():
             user = self.auth_service.get_current_user()
             permissions = user.get("permissions", [])
 
-            # Grouped navigation structure
             nav_groups = {
                 "Library": [
                     {"text": "My Books", "command": self.show_my_books, "permission": "borrow_physical_books"},
+                    {"text": "Research Papers", "command": self.show_research, "permission": "access_research_papers"},
                     {"text": "Reservations", "command": self.show_reservations, "permission": "reserve_books"},
                 ],
-                # "Digital Access": [
-                #     {"text": "eBooks", "command": self.show_ebooks, "permission": "access_ebooks"},
-                #     {"text": "Audiobooks", "command": self.show_audiobooks, "permission": "access_audiobooks"},
-                #     {"text": "Research", "command": self.show_research, "permission": "access_research_papers"},
-                # ],
                 "Admin Tools": [
                     {"text": "Users", "command": self.show_users, "permission": "manage_users"},
                     {"text": "Items", "command": self.show_manage_items, "permission": "manage_catalog"},
                     {"text": "Authors", "command": self.show_manage_author, "permission": "manage_catalog"},
-                    {"text": "Reports", "command": self.show_reports, "permission": "view_reports"},
                 ],
                 "Account": [
                     {"text": "Profile", "command": self.show_profile},
@@ -101,7 +95,6 @@ class MainLayout(ctk.CTkFrame):
                     self.create_dropdown(group_name, filtered_items)
         else:
             self.create_nav_button("Home", self.show_home)
-            # self.create_nav_button("Search", self.show_search)
             self.create_nav_button("Browse", self.show_browse)
             self.create_nav_button("Login", self.show_login, solid=True)
             self.create_nav_button("Sign Up", self.show_register, fg_color=OFFWHITE_COLOR, text_color=TEXT_COLOR)
@@ -144,7 +137,6 @@ class MainLayout(ctk.CTkFrame):
                 self.active_menu = None
                 self.root.unbind("<Button-1>")
 
-        # Close menu if clicking outside
         self.root.bind("<Button-1>", close_menu)
 
 
@@ -200,22 +192,16 @@ class MainLayout(ctk.CTkFrame):
         self.user = user
         self.update_navigation()
 
-    # Navigation command wrappers
     def show_home(self): self.master.show_home_page(self.user)
     def show_browse(self): self.master.show_browse_page()
+    def show_research_papers(self): pass
     def show_my_books(self): self.master.show_my_books_page()
-    def show_reservations(self): self.master.show_reservations_page()
-    def show_extensions(self): self.master.show_extensions_page()
-    def show_ebooks(self): self.master.show_ebooks_page()
-    def show_audiobooks(self): self.master.show_audiobooks_page()
     def show_research(self): self.master.show_research_page()
+    def show_reservations(self): self.master.show_reservations_page()
+    def show_research_papers(self): self.master.show_research_page()
     def show_users(self): self.master.show_users_page()
     def show_manage_items(self): self.master.show_manage_items_page()
     def show_manage_author(self): self.master.show_manage_author_page()
-    def show_reports(self): self.master.show_extra_page()
-    def show_settings(self): self.master.show_settings_page()
-    def show_admin(self): self.master.show_admin_page()
     def show_profile(self): self.master.show_profile_page()
-    def show_notifications(self): pass
     def show_login(self): self.master.show_login_page()
     def show_register(self): self.master.show_register_page()

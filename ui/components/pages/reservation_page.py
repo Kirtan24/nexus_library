@@ -79,7 +79,6 @@ class ReservationsPage(ctk.CTkFrame):
         self.load_notified_reservations()
 
     def load_active_reservations(self):
-        """Load books user is waiting for (status = 'active')"""
         query = """
             SELECT o.item_id, o.created_at as reservation_date,
                    i.title, i.author_id, i.availability_status,
@@ -109,7 +108,6 @@ class ReservationsPage(ctk.CTkFrame):
             )
 
     def load_notified_reservations(self):
-        """Load books that became available (status = 'notified')"""
         try:
             query = """
                 SELECT o.item_id, o.created_at as reservation_date,
@@ -152,7 +150,6 @@ class ReservationsPage(ctk.CTkFrame):
             error_label.pack(pady=50)
 
     def create_reservation_card(self, parent, reservation, is_active):
-        """Create a reservation card UI element"""
         card = ctk.CTkFrame(parent)
         card.pack(fill="x", pady=5, padx=5)
 
@@ -217,7 +214,6 @@ class ReservationsPage(ctk.CTkFrame):
             ).pack(pady=2)
 
     def cancel_reservation(self, item_id):
-        """Cancel an active reservation"""
         try:
             success = self.observer_service.remove(self.user_id, item_id)
             if success:
@@ -229,14 +225,12 @@ class ReservationsPage(ctk.CTkFrame):
             messagebox.showerror("Error", f"Failed to cancel reservation: {str(e)}")
 
     def borrow_reserved_book(self, item_id):
-        """Borrow a book that became available"""
         messagebox.showinfo("Borrow", "Redirecting to borrow page...")
         self.observer_service.remove(self.user_id, item_id)
         self.master.show_item_detail_page(item_id)
         self.load_reservations()
 
     def dismiss_notification(self, item_id):
-        """Dismiss a notification without borrowing"""
         try:
             success = self.observer_service.remove(self.user_id, item_id)
             if success:
