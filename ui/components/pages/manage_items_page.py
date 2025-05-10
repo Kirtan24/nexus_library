@@ -2,7 +2,8 @@ import customtkinter as ctk
 from tkinter import ttk, messagebox
 import tkinter as tk
 
-from app.controllers.library_controller import LibraryControlle
+from app.controllers.library_controller import LibraryController
+
 BACKGROUND_COLOR = "#f8f9fa"
 OFFWHITE_COLOR = "#f0f0f0"
 ACCENT_COLOR = "#6f23ff"
@@ -381,7 +382,7 @@ class ItemManagementPage(ctk.CTkFrame):
                 else:
                     values[name] = field.get()
             except tk.TclError:
-                values[name] = Non
+                values[name] = None
 
 
         required_fields = ["title", "author_id"]
